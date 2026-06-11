@@ -1,0 +1,80 @@
+services:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Frontend: Expo (React Native) — web + Metro bundler para device físico
+  # ───────────────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: patchmap-frontend
+    working_dir: /app
+    command: npm start
+    ports:
+      - '19000:19000' # Expo DevTools
+      - '19006:19006' # Expo web
+      - '8081:8081'   # Metro bundler
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+    networks:
+      - patchmap-network
+    stdin_open: true
+    tty: true
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Backend: Django + DRF (Fase 2)
+  # ───────────────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: patchmap-backend
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://patchmap:patchmap@db:5432/patchmap
+      - DJANGO_DEBUG=true
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,backend
+      - CORS_ALLOW_ALL=true
+      - SEED_ADMIN_EMAIL=admin@patchmap.com
+      - SEED_ADMIN_PASSWORD=123456
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - patchmap-network
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Database: PostgreSQL (Fase 2)
+  # ───────────────────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: patchmap-db
+    environment:
+      POSTGRES_USER: patchmap
+      POSTGRES_PASSWORD: patchmap
+      POSTGRES_DB: patchmap
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U patchmap']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - patchmap-network
+
+networks:
+  patchmap-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

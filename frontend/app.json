@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "PatchMap",
+    "slug": "patchmap",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "patchmap",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f3f5f8"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.gov.patchmap"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#2563eb"
+      },
+      "package": "br.gov.patchmap"
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/icon.png"
+    }
+  }
+}

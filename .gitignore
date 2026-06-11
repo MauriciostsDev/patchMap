@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PatchMap — gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Python (backend — próxima fase)
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.Python
+venv/
+env/
+.venv/
+db.sqlite3
+*.sqlite3
+
+# Docker
+*.pid
