@@ -1,12 +1,17 @@
 # Docker e Execução
 
+> 📦 **Backend migrado:** o `docker-compose.yml` deste repo agora sobe **só o
+> frontend**. O backend Django + Postgres vivem no repo
+> [pathMapApi](https://github.com/MauriciostsDev/pathMapApi). Guia atual de
+> execução: [[../EXECUTAR|EXECUTAR.md]].
+
 ## Serviços (docker-compose.yml)
 
 | Serviço   | Estado | Porta(s) | Descrição |
 |-----------|--------|----------|-----------|
 | `frontend`| ✅     | 8081 (Metro), 19000/19006 (Expo) | Expo dev server. Web em `http://localhost:19006`. |
-| `backend` | ✅     | 8000     | Django + DRF ([[API Backend]]). API em `http://localhost:8000/`, admin em `/admin/`. |
-| `db`      | ✅     | 5432     | PostgreSQL 16 (volume `postgres-data`, healthcheck). |
+| `backend` | ➡️ movido | 8000  | Django + DRF — agora no repo [pathMapApi](https://github.com/MauriciostsDev/pathMapApi) ([[API Backend]] = contrato). |
+| `db`      | ➡️ movido | 5432  | PostgreSQL — junto do backend no [pathMapApi](https://github.com/MauriciostsDev/pathMapApi). |
 
 ## Rodar o frontend (mock)
 

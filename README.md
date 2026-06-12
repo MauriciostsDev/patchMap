@@ -22,7 +22,7 @@
   - Autenticação JWT (login + refresh)
   - CRUD completo de conexões + recursos de topologia (read-only)
   - Seed idempotente (port do `seed.ts`) e admin do Django
-  - Ver [`backend/README.md`](backend/README.md)
+  - 📦 **Repo próprio:** https://github.com/MauriciostsDev/pathMapApi
 
 - ✅ **Fase 3 — Integração frontend ↔ backend (MVP concluído)**
   - Login real via `/auth/login` (JWT + refresh + restauração de sessão)
@@ -50,8 +50,9 @@
 Resumo:
 
 ```powershell
-# Backend (Django + DRF + JWT, SQLite por padrão)
-cd backend
+# Backend — repo próprio: https://github.com/MauriciostsDev/pathMapApi
+git clone https://github.com/MauriciostsDev/pathMapApi.git
+cd pathMapApi
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe manage.py migrate
@@ -103,13 +104,12 @@ patchmap/
 │   ├── package.json
 │   └── Dockerfile
 │
-├── backend/                 # Django + DRF
-│   ├── config/              # projeto (settings, urls, wsgi)
-│   ├── network/             # app: models, serializers, views, seed_data
-│   ├── Dockerfile · entrypoint.sh · requirements.txt
-│   └── README.md
-├── docker-compose.yml
+├── docker-compose.yml       # só o frontend web (backend saiu p/ pathMapApi)
+├── EXECUTAR.md              # guia de execução atual
 └── README.md
+
+# Backend (Django + DRF) → repositório próprio:
+#   https://github.com/MauriciostsDev/pathMapApi
 ```
 
 ## 🎨 Features

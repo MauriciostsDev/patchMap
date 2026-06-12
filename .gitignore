@@ -20,6 +20,10 @@ web-build/
 /frontend/ios/
 **/local.properties
 
+# Backend migrado p/ repositório próprio: https://github.com/MauriciostsDev/pathMapApi
+# A cópia local em ./backend é mantida para dev, mas não é mais versionada aqui.
+/backend/
+
 # TypeScript
 *.tsbuildinfo
 

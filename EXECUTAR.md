@@ -6,9 +6,14 @@ frontend ↔ backend concluída no MVP). Para o contexto/arquitetura, ver
 [`docs/Integração Frontend-Backend.md`](docs/Integra%C3%A7%C3%A3o%20Frontend-Backend.md).
 
 > **TL;DR**
-> 1. Backend: `cd backend` → venv → `migrate` → `seed_data` → `runserver 0.0.0.0:8000`
+> 1. Backend (repo próprio [pathMapApi](https://github.com/MauriciostsDev/pathMapApi)):
+>    `git clone` → venv → `migrate` → `seed_data` → `runserver 0.0.0.0:8000`
 > 2. Frontend: `cd frontend` → `npm install` → `npx expo run:android` (**dev build**, não Expo Go)
 > 3. Login no app: **`admin@patchmap.com` / `123456`**
+
+> 📦 **O backend vive em outro repositório:**
+> <https://github.com/MauriciostsDev/pathMapApi>. Este repo (`patchMap`) tem só o
+> **frontend** + a documentação. Clone os dois lado a lado.
 
 ---
 
@@ -30,12 +35,14 @@ frontend ↔ backend concluída no MVP). Para o contexto/arquitetura, ver
 
 ---
 
-## 1. Backend (Django + DRF + JWT)
+## 1. Backend (Django + DRF + JWT) — repo [pathMapApi](https://github.com/MauriciostsDev/pathMapApi)
 
 Por padrão usa **SQLite** (não precisa de Postgres para desenvolver).
 
 ```powershell
-cd backend
+# clone o repositório do backend (ao lado do patchMap)
+git clone https://github.com/MauriciostsDev/pathMapApi.git
+cd pathMapApi
 
 # venv + dependências
 python -m venv .venv
@@ -116,14 +123,11 @@ Resolução automática em `frontend/src/api/config.ts`. O `10.0.2.2` já está 
 
 ---
 
-## 4. Alternativa: Docker (backend + Postgres)
+## 4. Docker
 
-O [`docker-compose.yml`](docker-compose.yml) sobe backend + Postgres (e um
-serviço de frontend web). Para a API:
-
-```bash
-docker compose up --build backend db
-```
+O [`docker-compose.yml`](docker-compose.yml) deste repo sobe **apenas o
+frontend web**. O backend + Postgres ficam no repo
+[pathMapApi](https://github.com/MauriciostsDev/pathMapApi) (rode a API de lá).
 
 > O caminho **recomendado para o app mobile** continua sendo o **dev build**
 > (seção 2), porque o emulador exige libs 16 KB que só o build nativo entrega.

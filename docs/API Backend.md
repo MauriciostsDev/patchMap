@@ -1,9 +1,10 @@
 # API Backend (Django) — Fase 2 ✅
 
-> **Status:** implementado. O backend Django + DRF vive em `backend/` e sobe via
-> [[Docker e Execução|docker-compose]] (serviços `backend` + `db`). O frontend
-> ainda roda offline ([[decisoes/0003 - Mock offline antes do backend]]); a
-> integração (camada de sync sobre o store Zustand) fica para a próxima fase.
+> **Status:** implementado e integrado (Fase 3). 📦 O código do backend Django +
+> DRF foi migrado para o repositório próprio
+> **[pathMapApi](https://github.com/MauriciostsDev/pathMapApi)** (rode a API de
+> lá). Este documento descreve o **contrato** REST consumido pelo frontend —
+> ver [[Integração Frontend-Backend]]. Como rodar: [[../EXECUTAR|EXECUTAR.md]].
 
 ## Stack
 

@@ -11,7 +11,7 @@
 - [[Arquitetura Frontend]] — Expo/React Native, store, navegação, estrutura de pastas.
 - [[Telas]] — descrição de cada uma das 6 telas e suas interações.
 - [[Design Tokens]] — cores, fontes, raios, espaçamentos, tema claro/escuro.
-- [[API Backend]] — contrato REST implementado (Django + DRF + JWT). Ver também `backend/README.md`.
+- [[API Backend]] — contrato REST implementado (Django + DRF + JWT). 📦 Código no repo próprio: https://github.com/MauriciostsDev/pathMapApi
 - [[Integração Frontend-Backend]] — como o app conversa com o backend (camada `src/api/`, JWT). **Fase 3.**
 - [[Docker e Execução]] — como rodar tudo, portas, caveats.
 - [[Roadmap]] — o que está feito e o que vem a seguir.
@@ -29,7 +29,7 @@
 | Camada    | Status            | Nota |
 |-----------|-------------------|------|
 | Frontend  | ✅ Expo SDK 53 (RN 0.79) — dev build 16KB-aligned | [[Arquitetura Frontend]] |
-| Backend   | ✅ Django + DRF + JWT (CRUD + seed), rodando e validado | [[API Backend]] |
+| Backend   | ✅ Django + DRF + JWT — migrado p/ repo [pathMapApi](https://github.com/MauriciostsDev/pathMapApi) | [[API Backend]] |
 | Docker    | ✅ Frontend + Backend + Postgres | [[Docker e Execução]] |
 | Integração front ↔ back | 🟢 Fase 3 (MVP): login JWT + sync de dados + fila offline | [[Integração Frontend-Backend]] |
 
