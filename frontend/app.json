@@ -12,21 +12,26 @@
       "resizeMode": "contain",
       "backgroundColor": "#f3f5f8"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "br.gov.patchmap"
+      "newArchEnabled": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#2563eb"
       },
-      "package": "br.gov.patchmap"
+      "package": "br.gov.patchmap",
+      "newArchEnabled": true
     },
     "web": {
       "bundler": "metro",
       "favicon": "./assets/icon.png"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

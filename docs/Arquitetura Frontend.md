@@ -6,11 +6,11 @@ App **Expo (React Native) + TypeScript**, port fiel do protótipo web em `Rastre
 
 | Camada | Escolha | Por quê |
 |--------|---------|---------|
-| Runtime | Expo SDK 51 (RN 0.74) | Recomendado no `IMPLEMENTACAO_FRONTEND.md`; web + nativo. |
+| Runtime | Expo SDK 53 (RN 0.79, React 19) | Atualizado de 51→53: SDK 53 entrega libs nativas **16KB-aligned** (exigência do emulador Android 15+). Roda via dev build, não Expo Go. |
 | Linguagem | TypeScript | Contrato de tipos com o [[Modelo de Dados]]. |
 | Navegação | React Navigation v6 (Native Stack) | As abas são um bottom-nav próprio (`MainTabs`), não o Bottom Tabs do ecossistema. |
 | Estado | Zustand + persist (AsyncStorage) | Leve; offline-first. |
-| Ícones | `react-native-svg` (`SvgXml`) | Reaproveita os paths SVG do protótipo 1:1 (`ICON_PATHS`). |
+| Ícones | `react-native-svg` (primitivos `Svg/Path/...`) | Reaproveita os paths do protótipo (`ICON_PATHS`), parseados p/ primitivos — o build web não exporta `SvgXml`. |
 | Tema | Hook `useTheme()` sobre o store | Emula as CSS custom properties do protótipo (sem Context). |
 | Fontes | `@expo-google-fonts` (Plus Jakarta Sans + IBM Plex Mono) | Carregadas via `useFonts` no `App.tsx`. |
 

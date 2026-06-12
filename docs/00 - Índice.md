@@ -12,6 +12,7 @@
 - [[Telas]] — descrição de cada uma das 6 telas e suas interações.
 - [[Design Tokens]] — cores, fontes, raios, espaçamentos, tema claro/escuro.
 - [[API Backend]] — contrato REST implementado (Django + DRF + JWT). Ver também `backend/README.md`.
+- [[Integração Frontend-Backend]] — como o app conversa com o backend (camada `src/api/`, JWT). **Fase 3.**
 - [[Docker e Execução]] — como rodar tudo, portas, caveats.
 - [[Roadmap]] — o que está feito e o que vem a seguir.
 
@@ -21,15 +22,16 @@
 - [[decisoes/0002 - Vault Obsidian como memória do projeto]]
 - [[decisoes/0003 - Mock offline antes do backend]]
 - [[decisoes/0004 - Backend espelha o contrato do frontend]]
+- [[decisoes/0005 - Camada de API e autenticação real]]
 
 ## Estado atual (2026-06-11)
 
 | Camada    | Status            | Nota |
 |-----------|-------------------|------|
-| Frontend  | ✅ Mock offline funcional (Expo) | [[Arquitetura Frontend]] |
-| Backend   | ✅ Django + DRF + JWT (CRUD + seed) | [[API Backend]] |
+| Frontend  | ✅ Expo SDK 53 (RN 0.79) — dev build 16KB-aligned | [[Arquitetura Frontend]] |
+| Backend   | ✅ Django + DRF + JWT (CRUD + seed), rodando e validado | [[API Backend]] |
 | Docker    | ✅ Frontend + Backend + Postgres | [[Docker e Execução]] |
-| Integração front ↔ back | 🔜 Fase 3 (login real + sync) | [[Roadmap]] |
+| Integração front ↔ back | 🟢 Fase 3 (MVP): login JWT + sync de dados + fila offline | [[Integração Frontend-Backend]] |
 
 ## Material de referência original
 

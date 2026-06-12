@@ -14,14 +14,22 @@
 - [x] Modelos espelhando [[Modelo de Dados]] (PKs string) + seed idempotente
 - [x] Endpoints REST em camelCase ([[API Backend]])
 - [x] Auth JWT (login + refresh)
-- [ ] Conectar frontend (camada de API + `EXPO_PUBLIC_API_URL`) → Fase 3
+- [x] Backend rodando e validado localmente (login + CRUD + auth) — ver [[Integração Frontend-Backend]]
 
-## 🔜 Fase 3 — Integração + sincronização offline
-- [ ] Trocar o login mock por `/auth/login`
-- [ ] Camada de API no frontend + `EXPO_PUBLIC_API_URL`
-- [ ] Fila de operações pendentes no frontend
-- [ ] Estratégia de merge / resolução de conflito (last-write-wins no MVP)
-- [ ] Indicadores de "sincronizando / offline" na UI
+## 🟢 Fase 3 — Integração + sincronização offline (concluída no MVP)
+Detalhe em [[Integração Frontend-Backend]] · base: [[decisoes/0005 - Camada de API e autenticação real]].
+- [x] Camada de API no frontend (`src/api/`: config, storage, client, auth, dto, resources, mappers)
+- [x] Trocar o login mock por `/auth/login` (JWT + refresh + restore no boot)
+- [x] Mapper DTO normalizado ↔ `Point` plano (enriquece o front sem rewrite da UI)
+- [x] Store carrega `/points/` + topologia da API; CRUD sincroniza (POST/PUT/DELETE)
+- [x] Fila de operações pendentes (`dirty` + `pendingDeletes`, persistidas)
+- [x] Estratégia de merge / resolução de conflito (last-write-wins no MVP)
+- [x] Indicador de "sincronizando / pendente / offline" na UI (`SyncBadge`)
+
+### Follow-ups da Fase 3 (não bloqueiam)
+- [ ] Repointar os pickers de setor/VLAN do Form para a topologia viva (hoje usam o seed)
+- [ ] Surfacing de `building`/`floor`/`macAddress`/`ipAddress` nas telas de Detalhe
+- [ ] Detecção de conectividade (NetInfo) p/ disparar `syncPending` ao reconectar
 
 ## Ideias futuras (não priorizadas)
 - [ ] Exportar/importar planilha (CSV) de pontos
