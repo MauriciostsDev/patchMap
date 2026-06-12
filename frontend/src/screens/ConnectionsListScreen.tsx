@@ -6,11 +6,10 @@ import { useAppStore } from '../store';
 import { useTheme } from '../theme/useTheme';
 import { sans, mono } from '../theme/fonts';
 import type { ConnectionStatus, Point } from '../types';
-import { SECTORS } from '../data/seed';
 import { Icon } from '../components/Icon';
 import { PointRow } from '../components/PointRow';
-import { VlanTag } from '../components/VlanTag';
 import { SyncBadge } from '../components/SyncBadge';
+import { SectorEditModal } from '../components/SectorEditModal';
 
 function StatPill({
   label,
@@ -102,11 +101,13 @@ export function ConnectionsListScreen({ onOpen }: { onOpen: (id: number) => void
   const t = useTheme();
   const points = useAppStore((s) => s.points);
   const density = useAppStore((s) => s.density);
+  const colorOf = useAppStore((s) => s.sectorColorOf);
 
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<ConnectionStatus | 'todos'>('todos');
   const [sector, setSector] = useState<string>('todos');
   const [group, setGroup] = useState(false);
+  const [editSector, setEditSector] = useState<string | null>(null);
 
   const counts = useMemo(
     () => ({
@@ -322,10 +323,11 @@ export function ConnectionsListScreen({ onOpen }: { onOpen: (id: number) => void
         </View>
       ) : group && grouped ? (
         grouped.map(([name, rows]) => {
-          const meta = SECTORS.find((s) => s.name === name);
+          const isReal = name !== 'Não atribuído';
           return (
             <View key={name}>
-              <View
+              <Pressable
+                onPress={() => isReal && setEditSector(name)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -337,6 +339,11 @@ export function ConnectionsListScreen({ onOpen }: { onOpen: (id: number) => void
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {isReal ? (
+                    <View
+                      style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: colorOf(name) }}
+                    />
+                  ) : null}
                   <Text
                     style={{
                       fontSize: 13,
@@ -352,8 +359,8 @@ export function ConnectionsListScreen({ onOpen }: { onOpen: (id: number) => void
                     {rows.length}
                   </Text>
                 </View>
-                {meta ? <VlanTag vlan={meta.vlan} /> : null}
-              </View>
+                {isReal ? <Icon name="edit" size={14} color={t.borderStrong} stroke={2} /> : null}
+              </Pressable>
               {rows.map((p) => (
                 <PointRow key={p.id} p={p} density={density} onOpen={onOpen} />
               ))}
@@ -365,6 +372,8 @@ export function ConnectionsListScreen({ onOpen }: { onOpen: (id: number) => void
       )}
 
       <View style={{ height: 90 }} />
+
+      <SectorEditModal name={editSector} onClose={() => setEditSector(null)} />
     </ScrollView>
   );
 }

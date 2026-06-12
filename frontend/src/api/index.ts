@@ -9,6 +9,10 @@ export {
   createPoint,
   updatePoint,
   deletePointApi,
+  updateSectorApi,
+  createVlanApi,
+  updateVlanApi,
+  deleteVlanApi,
 } from './resources';
 export { pointFromDTO, pointToDTO, panelDefFromDTO, panelCode } from './mappers';
-export type { Topology, ConnectionPointDTO } from './dto';
+export type { Topology, ConnectionPointDTO, SectorDTO, VlanDTO } from './dto';

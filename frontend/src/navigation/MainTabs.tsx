@@ -71,7 +71,7 @@ export function MainTabs({ navigation }: Props) {
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         {tab === 'pontos' && <ConnectionsListScreen onOpen={onOpen} />}
-        {tab === 'vlans' && <VLANsScreen onOpen={onOpen} />}
+        {tab === 'vlans' && <VLANsScreen />}
         {tab === 'painel' && <PanelScreen onOpen={onOpen} />}
       </SafeAreaView>
 

@@ -6,6 +6,8 @@ export interface SectorDTO {
   name: string;
   building: string;
   floor: string;
+  color: string;
+  vlanId: string | null;
 }
 
 export interface PatchPanelDTO {
@@ -30,6 +32,7 @@ export interface VlanDTO {
   name: string;
   subnet: string;
   description: string;
+  sectorIds: string[];
 }
 
 export interface ConnectionPointDTO {

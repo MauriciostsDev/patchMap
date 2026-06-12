@@ -3,6 +3,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import type { Point, Density } from '../types';
+import { useAppStore } from '../store';
 import { useTheme } from '../theme/useTheme';
 import { sans, mono } from '../theme/fonts';
 import { statusColor, DEVICE_ICON } from '../theme/tokens';
@@ -20,6 +21,7 @@ export function PointRow({
   onOpen: (id: number) => void;
 }) {
   const t = useTheme();
+  const colorOf = useAppStore((s) => s.sectorColorOf);
   const compact = density === 'compact';
   const comfy = density === 'comfy';
   const sc = statusColor(p.status);
@@ -84,6 +86,11 @@ export function PointRow({
       {/* corpo */}
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          {p.sector ? (
+            <View
+              style={{ width: 9, height: 9, borderRadius: 999, backgroundColor: colorOf(p.sector) }}
+            />
+          ) : null}
           {p.device !== '—' && DEVICE_ICON[p.device] ? (
             <Icon name={DEVICE_ICON[p.device]} size={15} color={t.muted} stroke={2} />
           ) : null}

@@ -9,6 +9,7 @@
 - [[Visão Geral]] — o que é o PatchMap, problema que resolve, estado atual.
 - [[Modelo de Dados]] — entidades, tipos, seed e regras de negócio. **Contrato compartilhado front ↔ back.**
 - [[Seed de Dados]] — dados reais (SETHAS) importados do PDF: regras, números e como regerar/rodar a seed.
+- [[Setores e VLANs]] — setores editáveis (nome+cor) e VLANs como grupos de setores; UX e o que falta verificar.
 - [[Arquitetura Frontend]] — Expo/React Native, store, navegação, estrutura de pastas.
 - [[Telas]] — descrição de cada uma das 6 telas e suas interações.
 - [[Design Tokens]] — cores, fontes, raios, espaçamentos, tema claro/escuro.

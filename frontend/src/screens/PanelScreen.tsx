@@ -7,23 +7,26 @@ import { useTheme } from '../theme/useTheme';
 import { sans, mono } from '../theme/fonts';
 import type { Point } from '../types';
 import { STATUSES } from '../data/seed';
-import { STATUS_META, statusColor, withAlpha, sectorColor } from '../theme/tokens';
+import { STATUS_META, statusColor, withAlpha } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 import { Segmented } from '../components/Segmented';
+import { SectorEditModal } from '../components/SectorEditModal';
 
 function Port({
   p,
   colorBy,
   width,
   onOpen,
+  colorOf,
 }: {
   p: Point;
   colorBy: 'setor' | 'status';
   width: number;
   onOpen: (id: number) => void;
+  colorOf: (name: string | null | undefined) => string;
 }) {
   const sc = statusColor(p.status);
-  const base = colorBy === 'status' ? sc : p.sector ? sectorColor(p.sector) : '#64748b';
+  const base = colorBy === 'status' ? sc : p.sector ? colorOf(p.sector) : '#64748b';
   const filled = !!p.sector || p.status === 'problema';
   return (
     <Pressable
@@ -78,8 +81,10 @@ export function PanelScreen({ onOpen }: { onOpen: (id: number) => void }) {
   const points = useAppStore((s) => s.points);
   const panels = useAppStore((s) => s.panels);
   const addPanel = useAppStore((s) => s.addPanel);
+  const colorOf = useAppStore((s) => s.sectorColorOf);
 
   const [colorBy, setColorBy] = useState<'setor' | 'status'>('setor');
+  const [editSector, setEditSector] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>(() => panels[0]?.id || 'A');
   const [addSheet, setAddSheet] = useState(false);
   const [newPanel, setNewPanel] = useState<{ id: string; ports: number; sw: string }>({
@@ -258,7 +263,7 @@ export function PanelScreen({ onOpen }: { onOpen: (id: number) => void }) {
             ) : cellW > 0 ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                 {panel.map((p) => (
-                  <Port key={p.id} p={p} colorBy={colorBy} width={cellW} onOpen={onOpen} />
+                  <Port key={p.id} p={p} colorBy={colorBy} width={cellW} onOpen={onOpen} colorOf={colorOf} />
                 ))}
               </View>
             ) : null}
@@ -292,12 +297,17 @@ export function PanelScreen({ onOpen }: { onOpen: (id: number) => void }) {
                   </View>
                 ))
               : sectorsInPanel.map((s) => (
-                  <View key={s} style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                  <Pressable
+                    key={s}
+                    onPress={() => setEditSector(s)}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}
+                  >
                     <View
-                      style={{ width: 11, height: 11, borderRadius: 3, backgroundColor: sectorColor(s) }}
+                      style={{ width: 11, height: 11, borderRadius: 3, backgroundColor: colorOf(s) }}
                     />
                     <Text style={{ fontSize: 13, fontFamily: sans(400), color: t.text }}>{s}</Text>
-                  </View>
+                    <Icon name="edit" size={11} color={t.muted} stroke={2} />
+                  </Pressable>
                 ))}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
               <View
@@ -468,6 +478,9 @@ export function PanelScreen({ onOpen }: { onOpen: (id: number) => void }) {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Modal de edição de setor (nome + cor) */}
+      <SectorEditModal name={editSector} onClose={() => setEditSector(null)} />
     </View>
   );
 }

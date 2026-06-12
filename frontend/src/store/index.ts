@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Point, PanelDef } from '../types';
 import { SEED_POINTS, PATCH_PANELS_DEF, SECTORS } from '../data/seed';
 import type { Density } from '../theme/tokens';
-import { DEFAULT_ACCENT } from '../theme/tokens';
+import { DEFAULT_ACCENT, sectorColor } from '../theme/tokens';
 import * as api from '../api';
 import type { AuthUser, Topology } from '../api';
 
@@ -41,6 +41,15 @@ interface AppState {
 
   // Setores conhecidos (seed + os usados nos pontos)
   allSectors: () => string[];
+
+  // ── Setores (cor/edição) e VLANs (grupos de setores) ──────────────
+  sectors: api.SectorDTO[];
+  vlans: api.VlanDTO[];
+  sectorColorOf: (name: string | null | undefined) => string;
+  updateSector: (id: string, patch: Partial<api.SectorDTO>) => void;
+  createVlan: (data: { vlanId: number; name: string; sectorIds: string[] }) => Promise<void>;
+  updateVlan: (id: string, data: { name?: string; vlanId?: number; sectorIds?: string[] }) => Promise<void>;
+  deleteVlan: (id: string) => Promise<void>;
 
   // Tweaks de tema
   accent: string;
@@ -112,7 +121,13 @@ export const useAppStore = create<AppState>()(
             const sw = merged.find((p) => p.patchPanel === def.id && p.sw)?.sw;
             return sw ? { ...def, sw } : def;
           });
-          set({ points: merged, panels, syncing: false });
+          set({
+            points: merged,
+            panels,
+            sectors: topology.sectors,
+            vlans: topology.vlans,
+            syncing: false,
+          });
         } catch (e) {
           const msg = e instanceof Error ? e.message : 'Falha ao sincronizar.';
           set({ syncing: false, lastSyncError: msg });
@@ -254,10 +269,76 @@ export const useAppStore = create<AppState>()(
         const pts = get().points;
         return [
           ...new Set([
+            ...get().sectors.map((s) => s.name),
             ...SECTORS.map((s) => s.name),
             ...pts.map((p) => p.sector).filter(Boolean) as string[],
           ]),
         ];
+      },
+
+      // ── Setores (cor/edição) e VLANs (grupos) ───────────────────
+      sectors: [],
+      vlans: [],
+      // Cor do setor: usa a cor própria (backend) ou um fallback estável.
+      sectorColorOf: (name) => {
+        if (!name) return '#64748b';
+        const s = get().sectors.find((x) => x.name === name);
+        return s?.color || sectorColor(name);
+      },
+      // Edita um setor (nome/cor/vlan): otimista local + PATCH no backend.
+      updateSector: (id, patch) => {
+        set((state) => ({
+          sectors: state.sectors.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+        }));
+        if (get().isLoggedIn) {
+          api.updateSectorApi(id, patch).catch((e) => {
+            set({ lastSyncError: e instanceof Error ? e.message : 'Falha ao salvar setor.' });
+          });
+        }
+      },
+      // Cria uma VLAN com os setores selecionados.
+      createVlan: async ({ vlanId, name, sectorIds }) => {
+        try {
+          const dto = await api.createVlanApi({ vlanId, name, sectorIds });
+          set((state) => ({
+            vlans: [...state.vlans, dto],
+            // reflete a vinculação dos setores localmente
+            sectors: state.sectors.map((s) =>
+              sectorIds.includes(s.id) ? { ...s, vlanId: dto.id } : s,
+            ),
+          }));
+        } catch (e) {
+          set({ lastSyncError: e instanceof Error ? e.message : 'Falha ao criar VLAN.' });
+        }
+      },
+      // Edita uma VLAN (nome/número/composição de setores).
+      updateVlan: async (id, data) => {
+        try {
+          const dto = await api.updateVlanApi(id, data);
+          set((state) => ({
+            vlans: state.vlans.map((v) => (v.id === id ? dto : v)),
+            sectors: state.sectors.map((s) => {
+              const inVlan = dto.sectorIds.includes(s.id);
+              if (inVlan) return { ...s, vlanId: id };
+              if (s.vlanId === id) return { ...s, vlanId: null }; // saiu do grupo
+              return s;
+            }),
+          }));
+        } catch (e) {
+          set({ lastSyncError: e instanceof Error ? e.message : 'Falha ao salvar VLAN.' });
+        }
+      },
+      deleteVlan: async (id) => {
+        const prev = get().vlans;
+        set((state) => ({
+          vlans: state.vlans.filter((v) => v.id !== id),
+          sectors: state.sectors.map((s) => (s.vlanId === id ? { ...s, vlanId: null } : s)),
+        }));
+        try {
+          await api.deleteVlanApi(id);
+        } catch (e) {
+          set({ vlans: prev, lastSyncError: e instanceof Error ? e.message : 'Falha ao excluir VLAN.' });
+        }
       },
 
       // ── Tweaks de tema ──────────────────────────────────────────

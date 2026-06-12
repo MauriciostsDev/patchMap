@@ -36,3 +36,17 @@ export const updatePoint = (id: string, body: Partial<ConnectionPointDTO>) =>
 
 export const deletePointApi = (id: string) =>
   request<null>(`/points/${id}/`, { method: 'DELETE' });
+
+// ── Setores (edição: nome/cor/vlan) ───────────────────────────────────
+export const updateSectorApi = (id: string, body: Partial<SectorDTO>) =>
+  request<SectorDTO>(`/sectors/${id}/`, { method: 'PATCH', body });
+
+// ── VLANs (grupos de setores) ─────────────────────────────────────────
+export const createVlanApi = (body: Partial<VlanDTO> & { sectorIds?: string[] }) =>
+  request<VlanDTO>('/vlans/', { method: 'POST', body });
+
+export const updateVlanApi = (id: string, body: Partial<VlanDTO> & { sectorIds?: string[] }) =>
+  request<VlanDTO>(`/vlans/${id}/`, { method: 'PATCH', body });
+
+export const deleteVlanApi = (id: string) =>
+  request<null>(`/vlans/${id}/`, { method: 'DELETE' });
