@@ -1,9 +1,11 @@
 // Icon.tsx — ícones stroke (port fiel do ICON_PATHS de components.jsx).
-// Os paths SVG são copiados 1:1 do protótipo e renderizados via SvgXml.
+// Os paths SVG são copiados 1:1 do protótipo. Renderizamos com os primitivos
+// (Svg/Path/Circle/Rect/Line) em vez de SvgXml: o build web do react-native-svg
+// 15.2.0 não exporta SvgXml, o que derrubava o app no navegador (tela branca).
 
 import React from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 
 export const ICON_PATHS: Record<string, string> = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
@@ -48,15 +50,41 @@ interface IconProps {
   style?: StyleProp<ViewStyle>;
 }
 
+const TAGS = { path: Path, circle: Circle, rect: Rect, line: Line } as const;
+
+// Converte a string interna do ICON_PATHS (ex.: '<circle cx="11" .../><path .../>')
+// nos componentes primitivos do react-native-svg, plataforma-agnóstico.
+function parseInner(inner: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const tagRe = /<(path|circle|rect|line)\b([^>]*?)\/?>/g;
+  const attrRe = /([a-zA-Z0-9-]+)="([^"]*)"/g;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = tagRe.exec(inner))) {
+    const Comp = TAGS[m[1] as keyof typeof TAGS];
+    const props: Record<string, string> = {};
+    let a: RegExpExecArray | null;
+    while ((a = attrRe.exec(m[2]))) props[a[1]] = a[2];
+    nodes.push(<Comp key={key++} {...props} />);
+  }
+  return nodes;
+}
+
 export function Icon({ name, size = 22, color = '#000', stroke = 2, style }: IconProps) {
   const inner = ICON_PATHS[name] || '';
-  const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
-  if (style) {
-    return (
-      <View style={style}>
-        <SvgXml xml={xml} width={size} height={size} />
-      </View>
-    );
-  }
-  return <SvgXml xml={xml} width={size} height={size} />;
+  const svg = (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={stroke}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {parseInner(inner)}
+    </Svg>
+  );
+  return style ? <View style={style}>{svg}</View> : svg;
 }

@@ -14,6 +14,12 @@ yarn-error.log*
 dist/
 web-build/
 
+# Expo prebuild — projeto nativo gerado (Continuous Native Generation).
+# Recriável com `npx expo prebuild`; build artifacts não devem ser versionados.
+/frontend/android/
+/frontend/ios/
+**/local.properties
+
 # TypeScript
 *.tsbuildinfo
 

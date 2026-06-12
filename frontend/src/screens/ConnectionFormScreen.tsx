@@ -99,7 +99,11 @@ export function ConnectionFormScreen({ route, navigation }: Props) {
     setTouched(true);
     if (!valid) return;
     const sw = f.swPort || `Gi1/0/${portNum}`;
+    const today = new Date().toISOString().slice(0, 10);
     const np = {
+      // Preserva os campos ricos/FKs do ponto original (serverId, sectorId,
+      // switchId, vlanRef, ...) para que a edição sincronize com o backend.
+      ...(initial ?? {}),
       id: isEdit ? (f.id as number) : portNum,
       sector: f.sector || null,
       patchPanel: f.patchPanel,
@@ -111,8 +115,9 @@ export function ConnectionFormScreen({ route, navigation }: Props) {
       device: f.device || '—',
       status: f.status,
       point: f.point || null,
+      identifier: f.point || initial?.identifier || `P-${portNum}`,
       obs: f.obs,
-      updatedAt: '2026-06-10',
+      updatedAt: today,
     };
     savePoint(np);
     navigation.replace('Detail', { id: np.id });

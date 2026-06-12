@@ -24,15 +24,19 @@
   - Seed idempotente (port do `seed.ts`) e admin do Django
   - Ver [`backend/README.md`](backend/README.md)
 
-- 🔜 **Fase 3 — Integração frontend ↔ backend**
-  - Login real (substituir o mock por `/auth/login`)
-  - Camada de sync offline-first sobre o store Zustand
+- ✅ **Fase 3 — Integração frontend ↔ backend (MVP concluído)**
+  - Login real via `/auth/login` (JWT + refresh + restauração de sessão)
+  - Camada `src/api/` + mapper DTO normalizado ↔ `Point` plano
+  - Store carrega topologia + 34 pontos do backend; CRUD sincroniza
+  - Fila offline (`dirty` + `pendingDeletes`) + indicador de sync na UI
+  - Frontend migrado p/ **Expo SDK 53 (RN 0.79)** — dev build alinhado a 16 KB
+  - Detalhes: [`docs/Integração Frontend-Backend.md`](docs/Integra%C3%A7%C3%A3o%20Frontend-Backend.md)
 
 ## 🛠️ Stack
 
 | Camada | Tecnologia |
 |--------|------------|
-| **Frontend** | React Native (Expo SDK 51) + TypeScript |
+| **Frontend** | React Native (Expo SDK 53 / RN 0.79) + TypeScript |
 | **Estado** | Zustand + AsyncStorage |
 | **Navegação** | React Navigation (Stack + Bottom Tabs) |
 | **Backend** | Django 5.1 + DRF + JWT |
@@ -41,33 +45,34 @@
 
 ## 📦 Executar o Projeto
 
-### Pré-requisitos
-- Docker + docker-compose
-- (Opcional) Expo Go no celular para testar no device físico
+👉 **Guia completo e atualizado:** [`EXECUTAR.md`](EXECUTAR.md)
 
-### Rodar o frontend (web + Metro)
-```bash
-docker-compose up frontend
+Resumo:
+
+```powershell
+# Backend (Django + DRF + JWT, SQLite por padrão)
+cd backend
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py seed_data
+.\.venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
+
+# Frontend (Expo SDK 53 — development build, NÃO Expo Go)
+cd frontend
+npm install
+npx expo run:android   # com o emulador aberto
 ```
 
-Acesse:
-- **Web:** http://localhost:19006
-- **Metro bundler:** http://localhost:19000 (para conectar device físico com Expo Go)
+- **API:** http://localhost:8000/ · **Admin:** http://localhost:8000/admin/
+- **App:** abre no emulador; login **`admin@patchmap.com` / `123456`**
 
-### Rodar o backend (API + banco)
-```bash
-docker compose up --build backend db
-```
-
-Acesse:
-- **API:** http://localhost:8000/
-- **Admin Django:** http://localhost:8000/admin/ — `admin@patchmap.com` / `123456`
-
-Subir tudo de uma vez: `docker compose up --build`.
+> ⚠️ O emulador (Android 15+) usa páginas de **16 KB**; o **Expo Go não é
+> compatível**. Use o **dev build** (`npx expo run:android`). Detalhes em
+> [`EXECUTAR.md`](EXECUTAR.md).
 
 ### Credenciais
-- **Frontend (mock):** aceita qualquer login.
-- **Backend (JWT/admin):** `admin@patchmap.com` / `123456`.
+- **App e Admin (JWT):** `admin@patchmap.com` / `123456` — autenticação real.
 
 ## 📂 Estrutura
 
@@ -110,7 +115,7 @@ patchmap/
 ## 🎨 Features
 
 ### Telas
-1. **Login** — Autenticação (mock aceita qualquer credencial)
+1. **Login** — Autenticação real via `/auth/login` (JWT)
 2. **Lista de Conexões** — Busca, filtros por status, agrupamento por setor
 3. **Detalhe** — Rota completa (Setor → Patch Panel → Switch → VLAN)
 4. **Formulário** — Criar/editar conexões
@@ -132,9 +137,9 @@ patchmap/
 
 ## 🧪 Próximos Passos
 
-1. **Integração frontend ↔ backend** — Camada de API + `EXPO_PUBLIC_API_URL`
-2. **Login real** — Substituir o mock por `/auth/login` (JWT + refresh)
-3. **Sincronização** — Fila offline-first → API (last-write-wins no MVP)
+1. **Pickers do Formulário** — repointar setor/VLAN para a topologia viva (hoje usam o seed)
+2. **Surfacing de campos ricos** — `building`/`floor`/`MAC`/`IP` nas telas de detalhe
+3. **Conectividade** — NetInfo p/ disparar `syncPending` ao reconectar
 4. **Busca avançada** — Filtros por prédio, VLAN, tipo de dispositivo
 5. **Histórico** — Auditoria de alterações
 

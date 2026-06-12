@@ -10,6 +10,7 @@ import { SECTORS } from '../data/seed';
 import { Icon } from '../components/Icon';
 import { PointRow } from '../components/PointRow';
 import { VlanTag } from '../components/VlanTag';
+import { SyncBadge } from '../components/SyncBadge';
 
 function StatPill({
   label,
@@ -200,9 +201,12 @@ export function ConnectionsListScreen({ onOpen }: { onOpen: (id: number) => void
               >
                 PatchMap
               </Text>
-              <Text style={{ fontSize: 13, fontFamily: sans(400), color: t.muted, marginTop: 1 }}>
-                Rastreador de Conexões
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                <Text style={{ fontSize: 13, fontFamily: sans(400), color: t.muted }}>
+                  Rastreador de Conexões
+                </Text>
+                <SyncBadge />
+              </View>
             </View>
           </View>
           <Pressable

@@ -1,0 +1,147 @@
+# ▶️ Como rodar o PatchMap (estado atual)
+
+Guia de execução do projeto **como ele está hoje** (Fase 3 — integração
+frontend ↔ backend concluída no MVP). Para o contexto/arquitetura, ver
+[`docs/00 - Índice.md`](docs/00%20-%20Índice.md) e
+[`docs/Integração Frontend-Backend.md`](docs/Integra%C3%A7%C3%A3o%20Frontend-Backend.md).
+
+> **TL;DR**
+> 1. Backend: `cd backend` → venv → `migrate` → `seed_data` → `runserver 0.0.0.0:8000`
+> 2. Frontend: `cd frontend` → `npm install` → `npx expo run:android` (**dev build**, não Expo Go)
+> 3. Login no app: **`admin@patchmap.com` / `123456`**
+
+---
+
+## 0. Pré-requisitos
+
+| Ferramenta | Versão usada | Observação |
+|---|---|---|
+| Python | 3.13 | backend Django |
+| Node.js | 18+ | frontend Expo |
+| JDK | 21 (Temurin) | build Android (`JAVA_HOME`) |
+| Android SDK | via Android Studio | `ANDROID_HOME` apontando p/ o SDK |
+| Emulador | Pixel_9a (API 37, **páginas de 16KB**) | ou device físico |
+
+> ⚠️ **Por que não Expo Go?** O emulador (Android 15+/16) usa **páginas de
+> 16 KB**. O Expo Go da Play Store **não é alinhado a 16 KB** e mostra um aviso
+> de incompatibilidade a cada abertura. Por isso rodamos um **development build**
+> (APK nativo próprio, SDK 53 / RN 0.79 com libs alinhadas). Ver
+> [`docs/decisoes/0001 - Stack do Frontend`] e a nota de ambiente do projeto.
+
+---
+
+## 1. Backend (Django + DRF + JWT)
+
+Por padrão usa **SQLite** (não precisa de Postgres para desenvolver).
+
+```powershell
+cd backend
+
+# venv + dependências
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# banco + dados de exemplo (10 setores, 7 painéis, 5 switches, 6 VLANs, 34 conexões)
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py seed_data
+
+# servidor — 0.0.0.0 p/ o emulador alcançar via 10.0.2.2
+.\.venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
+```
+
+No Linux/macOS troque `.\.venv\Scripts\python.exe` por `.venv/bin/python`.
+
+**Verificar:**
+- API: <http://localhost:8000/sectors/>
+- Admin Django: <http://localhost:8000/admin/> — `admin@patchmap.com` / `123456`
+- Login: `POST http://localhost:8000/auth/login` `{ "email": "...", "password": "..." }`
+
+O `seed_data` é **idempotente** e cria o admin automaticamente.
+
+---
+
+## 2. Frontend (Expo SDK 53 — development build)
+
+```powershell
+cd frontend
+npm install
+```
+
+Garanta que o Android SDK está localizável (uma das opções):
+- definir `ANDROID_HOME` (ex.: `C:\Users\<você>\AppData\Local\Android\Sdk`), **ou**
+- criar `frontend/android/local.properties` com
+  `sdk.dir=C:\\Users\\<você>\\AppData\\Local\\Android\\Sdk`
+  *(o `android/` é gerado no primeiro build — ver abaixo)*
+
+Com o **emulador aberto** (ou device USB com depuração ativa):
+
+```powershell
+npx expo run:android
+```
+
+Na primeira vez isso:
+1. gera o projeto nativo (`expo prebuild`) em `frontend/android/`;
+2. compila o APK com o Gradle (baixa dependências — pode levar alguns minutos);
+3. instala e abre o app no emulador;
+4. sobe o **Metro** (porta 8081) para servir o JS.
+
+> O `frontend/android/` é **gerado** (não versionado — _Continuous Native
+> Generation_). Para recriar do zero: `npx expo prebuild --clean --platform android`.
+
+### Recompilar / rodar depois
+- Só mudou JS/TS → o Metro faz _fast refresh_; se precisar, reabra o app.
+- Mudou dependência nativa/config → rode `npx expo run:android` de novo.
+
+---
+
+## 3. Usar o app
+
+1. Abra o app no emulador → tela de **Login**.
+2. Entre com **`admin@patchmap.com` / `123456`** (autenticação real via JWT).
+3. A lista troca do seed local pelos **34 pontos reais do backend**; o badge no
+   topo mostra **Sincronizado**.
+4. Abas: **Pontos** (lista/busca), **VLANs**, **Painel** (racks dos 7 patch panels).
+5. Criar/editar/excluir um ponto sincroniza com o backend (POST/PUT/DELETE).
+   Offline, fica pendente (`dirty`) e reenvia ao tocar no badge de sync.
+
+### Endereço do backend visto pelo app
+| Plataforma | Base URL |
+|---|---|
+| Emulador Android | `http://10.0.2.2:8000` |
+| Web / iOS Simulator | `http://localhost:8000` |
+| Override | `expo.extra.apiUrl` ou `EXPO_PUBLIC_API_URL` |
+
+Resolução automática em `frontend/src/api/config.ts`. O `10.0.2.2` já está em
+`ALLOWED_HOSTS` do Django.
+
+---
+
+## 4. Alternativa: Docker (backend + Postgres)
+
+O [`docker-compose.yml`](docker-compose.yml) sobe backend + Postgres (e um
+serviço de frontend web). Para a API:
+
+```bash
+docker compose up --build backend db
+```
+
+> O caminho **recomendado para o app mobile** continua sendo o **dev build**
+> (seção 2), porque o emulador exige libs 16 KB que só o build nativo entrega.
+
+---
+
+## 5. Problemas comuns
+
+| Sintoma | Causa / solução |
+|---|---|
+| Aviso "App isn't 16 KB compatible" | Está abrindo pelo **Expo Go**. Use o dev build (`npx expo run:android`). |
+| "Unable to load script" no app | Metro não está rodando. Rode `npx expo start` (ou `run:android`) e dê _reload_. |
+| Login falha / lista não carrega | Backend no ar em `0.0.0.0:8000`? Emulador alcança `10.0.2.2`? |
+| Gradle: "SDK location not found" | Defina `ANDROID_HOME` ou crie `android/local.properties` (seção 2). |
+| Painel vazio | Faça login (os painéis vêm da topologia do backend após o login). |
+
+---
+
+Credenciais, contrato da API e detalhes de sync estão em
+[`docs/API Backend.md`](docs/API%20Backend.md) e
+[`docs/Integração Frontend-Backend.md`](docs/Integra%C3%A7%C3%A3o%20Frontend-Backend.md).

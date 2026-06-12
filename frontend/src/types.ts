@@ -31,20 +31,38 @@ export interface PanelDef {
 }
 
 // Ponto de conexão — equivale a uma porta do patch panel.
+// Modelo "plano" usado pela UI. Quando vem do backend, é traduzido pelo mapper
+// (api/mappers.ts) que resolve os FKs e preenche os campos ricos (deviceName,
+// macAddress, ipAddress, identifier) + os *Id para a escrita de volta.
 export interface Point {
-  id: number;                 // ID DE CONEXÃO
-  sector: string | null;      // SETOR (null = livre)
-  patchPanel: string;         // PATCH PANEL
+  id: number;                 // ID DE CONEXÃO (sufixo numérico do serverId)
+  serverId?: string;          // PK no backend ('c12'); ausente = só local (offline)
+  sector: string | null;      // SETOR — nome (resolvido de sectorId)
+  patchPanel: string;         // PATCH PANEL — label/nome (resolvido)
   patchPort: number;          // porta no patch panel
-  sw: string;                 // SWITCH
+  sw: string;                 // SWITCH — nome (resolvido)
   swPort: string;             // porta no switch (Gi1/0/N)
-  vlan: number | null;
+  vlan: number | null;        // número da VLAN (ex.: 10)
   vlanName: string | null;
-  device: DeviceType | string;
+  device: DeviceType | string;// = deviceType
   status: ConnectionStatus;
-  point: string | null;       // etiqueta da tomada na parede
-  obs: string;
-  updatedAt: string;
+  point: string | null;       // etiqueta da tomada na parede (= identifier)
+  obs: string;                // = notes
+  updatedAt: string;          // = lastUpdate (YYYY-MM-DD)
+
+  // ── Campos ricos do backend (opcionais p/ compat. com o seed offline) ──
+  identifier?: string;        // 'GAB-01'
+  deviceName?: string;        // 'DESK-GAB-01'
+  macAddress?: string;
+  ipAddress?: string | null;
+  // FKs (string) — fonte de verdade p/ a escrita de volta no backend.
+  sectorId?: string | null;
+  patchPanelId?: string;
+  switchId?: string;
+  switchPort?: number;
+  vlanRef?: string | null;    // id da VLAN ('v1')
+
+  dirty?: boolean;            // alterado offline, aguardando sincronização
 }
 
 export type Density = 'compact' | 'regular' | 'comfy';

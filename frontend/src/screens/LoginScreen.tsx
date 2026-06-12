@@ -19,7 +19,7 @@ import { Icon } from '../components/Icon';
 
 export function LoginScreen() {
   const t = useTheme();
-  const login = useAppStore((s) => s.login);
+  const signIn = useAppStore((s) => s.signIn);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,17 +27,25 @@ export function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
-  function submit() {
+  async function submit() {
     if (!email.trim() || !password.trim()) {
       setError('Preencha e-mail e senha para continuar.');
       return;
     }
     setError('');
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await signIn(email.trim(), password);
+      // sucesso: o RootNavigator troca de tela ao ver isLoggedIn = true.
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.message
+          ? e.message
+          : 'Não foi possível conectar ao servidor.';
+      setError(msg);
+    } finally {
       setLoading(false);
-      login();
-    }, 1100);
+    }
   }
 
   const field = (extra: object) => ({
