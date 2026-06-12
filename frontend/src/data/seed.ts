@@ -1,101 +1,269 @@
-// seed.ts — modelo de dados inicial (port fiel de data.js do protótipo).
-// Baseado na planilha: SETOR | PATCH PANEL | ID DE CONEXÃO | SWITCH.
-// Enriquecido com: porta do switch, VLAN por setor, dispositivo, status, ponto e observações.
+// seed.ts — dados reais do PatchMap (SETHAS), fallback offline do store.
+// Gerado a partir de "Pontos sethas - Página1.pdf" (somente linhas completas,
+// com setor preenchido: 209 conexões). O app, online, carrega estes
+// mesmos dados do backend (ver src/api). Campos ausentes no PDF ficam nulos.
 
-import type { Point, Sector, Vlan, PanelDef, ConnectionStatus, DeviceType } from '../types';
+import type { Point, Sector, Vlan, PanelDef, DeviceType } from '../types';
 
-// ── Setores e suas VLANs ────────────────────────────────────────────
+// Setores (sem VLAN/prédio no PDF).
 export const SECTORS: Sector[] = [
-  { name: 'GSAD', vlan: 20, vlanName: 'Administrativo' },
-  { name: 'GAB', vlan: 10, vlanName: 'Gabinete' },
-  { name: 'GAB Recepção', vlan: 11, vlanName: 'Recepção' },
-  { name: 'Secretaria', vlan: 30, vlanName: 'Secretaria' },
+  { name: 'FEAS', vlan: null, vlanName: null },
+  { name: 'COPAS', vlan: null, vlanName: null },
+  { name: 'EXPEDIENTE', vlan: null, vlanName: null },
+  { name: 'COEPI', vlan: null, vlanName: null },
+  { name: 'GSAD', vlan: null, vlanName: null },
+  { name: 'SUPI', vlan: null, vlanName: null },
+  { name: 'GAB', vlan: null, vlanName: null },
+  { name: 'UIAP', vlan: null, vlanName: null },
+  { name: 'COMIPI', vlan: null, vlanName: null },
+  { name: 'GAB RECEPCCAO', vlan: null, vlanName: null },
+  { name: 'UIAG', vlan: null, vlanName: null },
+  { name: 'SECRETÁRIA', vlan: null, vlanName: null },
+  { name: 'AUDITORIO', vlan: null, vlanName: null },
+  { name: 'COPLAN', vlan: null, vlanName: null },
+  { name: 'NUDIT', vlan: null, vlanName: null },
+  { name: 'COSAN SUPAE', vlan: null, vlanName: null },
+  { name: 'SUAS PSE', vlan: null, vlanName: null },
+  { name: 'DARK ROOM', vlan: null, vlanName: null },
+  { name: 'UCI', vlan: null, vlanName: null },
+  { name: 'ASSETI INFRA', vlan: null, vlanName: null },
+  { name: 'SUAS PSB', vlan: null, vlanName: null },
+  { name: 'COPES', vlan: null, vlanName: null },
+  { name: 'SUGEP', vlan: null, vlanName: null },
+  { name: 'COSAN SUPROG', vlan: null, vlanName: null },
+  { name: 'VIG', vlan: null, vlanName: null },
+  { name: 'ASSEJU', vlan: null, vlanName: null },
 ];
 
-export const VLANS: Vlan[] = [
-  { id: 10, name: 'Gabinete' },
-  { id: 11, name: 'Recepção' },
-  { id: 20, name: 'Administrativo' },
-  { id: 30, name: 'Secretaria' },
-  { id: 99, name: 'Convidados' },
-];
+// Sem dados de VLAN no PDF.
+export const VLANS: Vlan[] = [];
 
+// Opções de dispositivo para o formulário (constantes de UI, não dados).
 export const DEVICES: (DeviceType | string)[] = [
-  'Desktop', 'Notebook', 'Telefone IP', 'Impressora', 'Access Point', 'Câmera IP', '—',
+  'Desktop', 'Notebook', 'Telefone IP', 'Impressora', 'Access Point', 'Câmera IP', 'Outro', '—',
 ];
 
-export const STATUSES: ConnectionStatus[] = ['ativo', 'inativo', 'problema'];
+export const STATUSES = ['ativo', 'inativo', 'problema'] as const;
 
-// ── Mapa de portas do patch panel A (1..32) → setor, da planilha ────
-// não listado = porta livre (não atribuída a setor)
-const PORT_SECTOR: Record<number, string> = {
-  8: 'GSAD', 9: 'GSAD', 10: 'GSAD', 11: 'GSAD',
-  13: 'GAB', 14: 'GAB', 15: 'GAB', 16: 'GAB', 17: 'GAB',
-  18: 'GAB Recepção', 19: 'GAB Recepção', 20: 'GAB Recepção', 21: 'GAB Recepção',
-  25: 'Secretaria',
-};
-
-// status/dispositivo "realistas" por porta (overrides); resto é inferido
-const OVERRIDES: Record<number, { status?: ConnectionStatus; device?: string; obs?: string }> = {
-  10: { status: 'problema', device: 'Telefone IP', obs: 'Sem link. Verificar crimpagem do cabo na tomada.' },
-  16: { status: 'problema', device: 'Desktop', obs: 'Intermitente — possível cabo rompido no forro.' },
-  13: { device: 'Telefone IP' },
-  14: { device: 'Desktop' },
-  15: { device: 'Notebook' },
-  17: { device: 'Access Point', obs: 'AP de teto, sala de reunião do gabinete.' },
-  8:  { device: 'Desktop' },
-  9:  { device: 'Desktop' },
-  11: { device: 'Impressora', obs: 'Impressora multifuncional compartilhada.' },
-  18: { device: 'Desktop' },
-  19: { device: 'Desktop' },
-  20: { device: 'Impressora' },
-  21: { device: 'Câmera IP', obs: 'Câmera da recepção.' },
-  25: { device: 'Desktop' },
-  3:  { status: 'inativo', obs: 'Porta livre reservada para expansão.' },
-};
-
-function sectorMeta(name: string | null): Sector | null {
-  return SECTORS.find((s) => s.name === name) || null;
-}
-
-// gera o ponto/etiqueta da tomada: ex GSAD-01
-function buildSeed(): Point[] {
-  const sectorCounters: Record<string, number> = {};
-  function pointLabel(sector: string | null): string | null {
-    if (!sector) return null;
-    const key = sector;
-    sectorCounters[key] = (sectorCounters[key] || 0) + 1;
-    const prefix = sector.replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 3).toUpperCase();
-    return `${prefix}-${String(sectorCounters[key]).padStart(2, '0')}`;
-  }
-
-  const points: Point[] = [];
-  for (let port = 1; port <= 32; port++) {
-    const sector = PORT_SECTOR[port] || null;
-    const meta = sectorMeta(sector);
-    const ov = OVERRIDES[port] || {};
-    const status: ConnectionStatus = ov.status || (sector ? 'ativo' : 'inativo');
-    points.push({
-      id: port,
-      sector,
-      patchPanel: 'A',
-      patchPort: port,
-      sw: 'CORE',
-      swPort: `Gi1/0/${port}`,
-      vlan: meta ? meta.vlan : null,
-      vlanName: meta ? meta.vlanName : null,
-      device: sector ? (ov.device || 'Desktop') : '—',
-      status,
-      point: pointLabel(sector),
-      obs: ov.obs || '',
-      updatedAt: '2026-06-09',
-    });
-  }
-  return points;
-}
-
-export const SEED_POINTS: Point[] = buildSeed();
-
+// Patch panels A–F (porta do switch = porta do patch panel).
 export const PATCH_PANELS_DEF: PanelDef[] = [
-  { id: 'A', label: 'Painel A', ports: 32, sw: 'CORE' },
+  { id: 'A', label: 'Patch Panel A', ports: 48, sw: 'CORE' },
+  { id: 'B', label: 'Patch Panel B', ports: 48, sw: 'GEREN-01-SW' },
+  { id: 'C', label: 'Patch Panel C', ports: 48, sw: 'GEREN-02-SW' },
+  { id: 'D', label: 'Patch Panel D', ports: 48, sw: 'GEREN-03-SW' },
+  { id: 'E', label: 'Patch Panel E', ports: 48, sw: 'DIST-01-SW' },
+  { id: 'F', label: 'Patch Panel F', ports: 48, sw: 'DIST-02-SW' },
+];
+
+// 209 conexões reais.
+export const SEED_POINTS: Point[] = [
+  { id: 1, sector: 'FEAS', patchPanel: 'A', patchPort: 1, sw: 'CORE', swPort: 'Gi1/0/1', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-01', obs: '', updatedAt: '2026-06-12' },
+  { id: 65, sector: 'COPAS', patchPanel: 'B', patchPort: 17, sw: 'GEREN-01-SW', swPort: 'Gi1/0/17', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-17', obs: '', updatedAt: '2026-06-12' },
+  { id: 2, sector: 'FEAS', patchPanel: 'A', patchPort: 2, sw: 'CORE', swPort: 'Gi1/0/2', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-02', obs: '', updatedAt: '2026-06-12' },
+  { id: 34, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 34, sw: 'CORE', swPort: 'Gi1/0/34', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-34', obs: '', updatedAt: '2026-06-12' },
+  { id: 66, sector: 'COPAS', patchPanel: 'B', patchPort: 18, sw: 'GEREN-01-SW', swPort: 'Gi1/0/18', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-18', obs: '', updatedAt: '2026-06-12' },
+  { id: 35, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 35, sw: 'CORE', swPort: 'Gi1/0/35', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-35', obs: '', updatedAt: '2026-06-12' },
+  { id: 67, sector: 'COPAS', patchPanel: 'B', patchPort: 19, sw: 'GEREN-01-SW', swPort: 'Gi1/0/19', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-19', obs: '', updatedAt: '2026-06-12' },
+  { id: 36, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 36, sw: 'CORE', swPort: 'Gi1/0/36', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-36', obs: '', updatedAt: '2026-06-12' },
+  { id: 68, sector: 'COPAS', patchPanel: 'B', patchPort: 20, sw: 'GEREN-01-SW', swPort: 'Gi1/0/20', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-20', obs: '', updatedAt: '2026-06-12' },
+  { id: 37, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 37, sw: 'CORE', swPort: 'Gi1/0/37', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-37', obs: '', updatedAt: '2026-06-12' },
+  { id: 69, sector: 'COPAS', patchPanel: 'B', patchPort: 21, sw: 'GEREN-01-SW', swPort: 'Gi1/0/21', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-21', obs: '', updatedAt: '2026-06-12' },
+  { id: 38, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 38, sw: 'CORE', swPort: 'Gi1/0/38', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-38', obs: '', updatedAt: '2026-06-12' },
+  { id: 70, sector: 'COPAS', patchPanel: 'B', patchPort: 22, sw: 'GEREN-01-SW', swPort: 'Gi1/0/22', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-22', obs: '', updatedAt: '2026-06-12' },
+  { id: 39, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 39, sw: 'CORE', swPort: 'Gi1/0/39', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-39', obs: '', updatedAt: '2026-06-12' },
+  { id: 71, sector: 'COPAS', patchPanel: 'B', patchPort: 23, sw: 'GEREN-01-SW', swPort: 'Gi1/0/23', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-23', obs: '', updatedAt: '2026-06-12' },
+  { id: 72, sector: 'COEPI', patchPanel: 'B', patchPort: 24, sw: 'GEREN-01-SW', swPort: 'Gi1/0/24', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-24', obs: '', updatedAt: '2026-06-12' },
+  { id: 9, sector: 'GSAD', patchPanel: 'A', patchPort: 9, sw: 'CORE', swPort: 'Gi1/0/9', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-09', obs: '', updatedAt: '2026-06-12' },
+  { id: 73, sector: 'COEPI', patchPanel: 'B', patchPort: 25, sw: 'GEREN-01-SW', swPort: 'Gi1/0/25', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-25', obs: '', updatedAt: '2026-06-12' },
+  { id: 105, sector: 'SUPI', patchPanel: 'C', patchPort: 9, sw: 'GEREN-02-SW', swPort: 'Gi1/0/9', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-09', obs: '', updatedAt: '2026-06-12' },
+  { id: 10, sector: 'GSAD', patchPanel: 'A', patchPort: 10, sw: 'CORE', swPort: 'Gi1/0/10', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-10', obs: '', updatedAt: '2026-06-12' },
+  { id: 42, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 42, sw: 'CORE', swPort: 'Gi1/0/42', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-42', obs: '', updatedAt: '2026-06-12' },
+  { id: 74, sector: 'COEPI', patchPanel: 'B', patchPort: 26, sw: 'GEREN-01-SW', swPort: 'Gi1/0/26', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-26', obs: '', updatedAt: '2026-06-12' },
+  { id: 106, sector: 'SUPI', patchPanel: 'C', patchPort: 10, sw: 'GEREN-02-SW', swPort: 'Gi1/0/10', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-10', obs: '', updatedAt: '2026-06-12' },
+  { id: 11, sector: 'GSAD', patchPanel: 'A', patchPort: 11, sw: 'CORE', swPort: 'Gi1/0/11', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-11', obs: '', updatedAt: '2026-06-12' },
+  { id: 43, sector: 'EXPEDIENTE', patchPanel: 'A', patchPort: 43, sw: 'CORE', swPort: 'Gi1/0/43', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-43', obs: '', updatedAt: '2026-06-12' },
+  { id: 75, sector: 'COEPI', patchPanel: 'B', patchPort: 27, sw: 'GEREN-01-SW', swPort: 'Gi1/0/27', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-27', obs: '', updatedAt: '2026-06-12' },
+  { id: 107, sector: 'SUPI', patchPanel: 'C', patchPort: 11, sw: 'GEREN-02-SW', swPort: 'Gi1/0/11', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-11', obs: '', updatedAt: '2026-06-12' },
+  { id: 12, sector: 'GSAD', patchPanel: 'A', patchPort: 12, sw: 'CORE', swPort: 'Gi1/0/12', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-12', obs: '', updatedAt: '2026-06-12' },
+  { id: 76, sector: 'COEPI', patchPanel: 'B', patchPort: 28, sw: 'GEREN-01-SW', swPort: 'Gi1/0/28', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-28', obs: '', updatedAt: '2026-06-12' },
+  { id: 108, sector: 'SUPI', patchPanel: 'C', patchPort: 12, sw: 'GEREN-02-SW', swPort: 'Gi1/0/12', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-12', obs: '', updatedAt: '2026-06-12' },
+  { id: 77, sector: 'COEPI', patchPanel: 'B', patchPort: 29, sw: 'GEREN-01-SW', swPort: 'Gi1/0/29', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-29', obs: '', updatedAt: '2026-06-12' },
+  { id: 109, sector: 'SUPI', patchPanel: 'C', patchPort: 13, sw: 'GEREN-02-SW', swPort: 'Gi1/0/13', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-13', obs: '', updatedAt: '2026-06-12' },
+  { id: 46, sector: 'COPAS', patchPanel: 'A', patchPort: 46, sw: 'CORE', swPort: 'Gi1/0/46', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-46', obs: '', updatedAt: '2026-06-12' },
+  { id: 78, sector: 'COEPI', patchPanel: 'B', patchPort: 30, sw: 'GEREN-01-SW', swPort: 'Gi1/0/30', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-30', obs: '', updatedAt: '2026-06-12' },
+  { id: 110, sector: 'SUPI', patchPanel: 'C', patchPort: 14, sw: 'GEREN-02-SW', swPort: 'Gi1/0/14', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-14', obs: '', updatedAt: '2026-06-12' },
+  { id: 15, sector: 'GAB', patchPanel: 'A', patchPort: 15, sw: 'CORE', swPort: 'Gi1/0/15', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-15', obs: '', updatedAt: '2026-06-12' },
+  { id: 47, sector: 'COPAS', patchPanel: 'A', patchPort: 47, sw: 'CORE', swPort: 'Gi1/0/47', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-47', obs: '', updatedAt: '2026-06-12' },
+  { id: 79, sector: 'COEPI', patchPanel: 'B', patchPort: 31, sw: 'GEREN-01-SW', swPort: 'Gi1/0/31', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-31', obs: '', updatedAt: '2026-06-12' },
+  { id: 16, sector: 'GAB', patchPanel: 'A', patchPort: 16, sw: 'CORE', swPort: 'Gi1/0/16', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-16', obs: '', updatedAt: '2026-06-12' },
+  { id: 48, sector: 'COPAS', patchPanel: 'A', patchPort: 48, sw: 'CORE', swPort: 'Gi1/0/48', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-48', obs: '', updatedAt: '2026-06-12' },
+  { id: 80, sector: 'UIAP', patchPanel: 'B', patchPort: 32, sw: 'GEREN-01-SW', swPort: 'Gi1/0/32', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-32', obs: '', updatedAt: '2026-06-12' },
+  { id: 17, sector: 'GAB', patchPanel: 'A', patchPort: 17, sw: 'CORE', swPort: 'Gi1/0/17', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-17', obs: '', updatedAt: '2026-06-12' },
+  { id: 49, sector: 'COPAS', patchPanel: 'B', patchPort: 1, sw: 'GEREN-01-SW', swPort: 'Gi1/0/1', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-01', obs: '', updatedAt: '2026-06-12' },
+  { id: 81, sector: 'UIAP', patchPanel: 'B', patchPort: 33, sw: 'GEREN-01-SW', swPort: 'Gi1/0/33', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-33', obs: '', updatedAt: '2026-06-12' },
+  { id: 113, sector: 'COMIPI', patchPanel: 'C', patchPort: 17, sw: 'GEREN-02-SW', swPort: 'Gi1/0/17', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-17', obs: '', updatedAt: '2026-06-12' },
+  { id: 18, sector: 'GAB', patchPanel: 'A', patchPort: 18, sw: 'CORE', swPort: 'Gi1/0/18', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-18', obs: '', updatedAt: '2026-06-12' },
+  { id: 50, sector: 'COPAS', patchPanel: 'B', patchPort: 2, sw: 'GEREN-01-SW', swPort: 'Gi1/0/2', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-02', obs: '', updatedAt: '2026-06-12' },
+  { id: 82, sector: 'UIAP', patchPanel: 'B', patchPort: 34, sw: 'GEREN-01-SW', swPort: 'Gi1/0/34', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-34', obs: '', updatedAt: '2026-06-12' },
+  { id: 114, sector: 'COMIPI', patchPanel: 'C', patchPort: 18, sw: 'GEREN-02-SW', swPort: 'Gi1/0/18', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-18', obs: '', updatedAt: '2026-06-12' },
+  { id: 19, sector: 'GAB RECEPCCAO', patchPanel: 'A', patchPort: 19, sw: 'CORE', swPort: 'Gi1/0/19', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-19', obs: '', updatedAt: '2026-06-12' },
+  { id: 51, sector: 'COPAS', patchPanel: 'B', patchPort: 3, sw: 'GEREN-01-SW', swPort: 'Gi1/0/3', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-03', obs: '', updatedAt: '2026-06-12' },
+  { id: 83, sector: 'UIAP', patchPanel: 'B', patchPort: 35, sw: 'GEREN-01-SW', swPort: 'Gi1/0/35', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-35', obs: '', updatedAt: '2026-06-12' },
+  { id: 115, sector: 'UIAG', patchPanel: 'C', patchPort: 19, sw: 'GEREN-02-SW', swPort: 'Gi1/0/19', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-19', obs: '', updatedAt: '2026-06-12' },
+  { id: 20, sector: 'GAB RECEPCCAO', patchPanel: 'A', patchPort: 20, sw: 'CORE', swPort: 'Gi1/0/20', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-20', obs: '', updatedAt: '2026-06-12' },
+  { id: 52, sector: 'COPAS', patchPanel: 'B', patchPort: 4, sw: 'GEREN-01-SW', swPort: 'Gi1/0/4', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-04', obs: '', updatedAt: '2026-06-12' },
+  { id: 84, sector: 'UIAP', patchPanel: 'B', patchPort: 36, sw: 'GEREN-01-SW', swPort: 'Gi1/0/36', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-36', obs: '', updatedAt: '2026-06-12' },
+  { id: 116, sector: 'UIAG', patchPanel: 'C', patchPort: 20, sw: 'GEREN-02-SW', swPort: 'Gi1/0/20', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-20', obs: '', updatedAt: '2026-06-12' },
+  { id: 21, sector: 'GAB RECEPCCAO', patchPanel: 'A', patchPort: 21, sw: 'CORE', swPort: 'Gi1/0/21', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-21', obs: '', updatedAt: '2026-06-12' },
+  { id: 53, sector: 'COPAS', patchPanel: 'B', patchPort: 5, sw: 'GEREN-01-SW', swPort: 'Gi1/0/5', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-05', obs: '', updatedAt: '2026-06-12' },
+  { id: 85, sector: 'UIAP', patchPanel: 'B', patchPort: 37, sw: 'GEREN-01-SW', swPort: 'Gi1/0/37', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-37', obs: '', updatedAt: '2026-06-12' },
+  { id: 117, sector: 'UIAG', patchPanel: 'C', patchPort: 21, sw: 'GEREN-02-SW', swPort: 'Gi1/0/21', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-21', obs: '', updatedAt: '2026-06-12' },
+  { id: 22, sector: 'GAB RECEPCCAO', patchPanel: 'A', patchPort: 22, sw: 'CORE', swPort: 'Gi1/0/22', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-22', obs: '', updatedAt: '2026-06-12' },
+  { id: 54, sector: 'COPAS', patchPanel: 'B', patchPort: 6, sw: 'GEREN-01-SW', swPort: 'Gi1/0/6', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-06', obs: '', updatedAt: '2026-06-12' },
+  { id: 86, sector: 'UIAP', patchPanel: 'B', patchPort: 38, sw: 'GEREN-01-SW', swPort: 'Gi1/0/38', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-38', obs: '', updatedAt: '2026-06-12' },
+  { id: 118, sector: 'UIAG', patchPanel: 'C', patchPort: 22, sw: 'GEREN-02-SW', swPort: 'Gi1/0/22', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-22', obs: '', updatedAt: '2026-06-12' },
+  { id: 55, sector: 'COPAS', patchPanel: 'B', patchPort: 7, sw: 'GEREN-01-SW', swPort: 'Gi1/0/7', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-07', obs: '', updatedAt: '2026-06-12' },
+  { id: 87, sector: 'UIAP', patchPanel: 'B', patchPort: 39, sw: 'GEREN-01-SW', swPort: 'Gi1/0/39', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-39', obs: '', updatedAt: '2026-06-12' },
+  { id: 119, sector: 'UIAG', patchPanel: 'C', patchPort: 23, sw: 'GEREN-02-SW', swPort: 'Gi1/0/23', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-23', obs: '', updatedAt: '2026-06-12' },
+  { id: 56, sector: 'COPAS', patchPanel: 'B', patchPort: 8, sw: 'GEREN-01-SW', swPort: 'Gi1/0/8', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-08', obs: '', updatedAt: '2026-06-12' },
+  { id: 88, sector: 'UIAP', patchPanel: 'B', patchPort: 40, sw: 'GEREN-01-SW', swPort: 'Gi1/0/40', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-40', obs: '', updatedAt: '2026-06-12' },
+  { id: 120, sector: 'UIAG', patchPanel: 'C', patchPort: 24, sw: 'GEREN-02-SW', swPort: 'Gi1/0/24', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-24', obs: '', updatedAt: '2026-06-12' },
+  { id: 25, sector: 'SECRETÁRIA', patchPanel: 'A', patchPort: 25, sw: 'CORE', swPort: 'Gi1/0/25', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-25', obs: '', updatedAt: '2026-06-12' },
+  { id: 57, sector: 'COPAS', patchPanel: 'B', patchPort: 9, sw: 'GEREN-01-SW', swPort: 'Gi1/0/9', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-09', obs: '', updatedAt: '2026-06-12' },
+  { id: 89, sector: 'UIAP', patchPanel: 'B', patchPort: 41, sw: 'GEREN-01-SW', swPort: 'Gi1/0/41', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-41', obs: '', updatedAt: '2026-06-12' },
+  { id: 121, sector: 'UIAG', patchPanel: 'C', patchPort: 25, sw: 'GEREN-02-SW', swPort: 'Gi1/0/25', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-25', obs: '', updatedAt: '2026-06-12' },
+  { id: 26, sector: 'SECRETÁRIA', patchPanel: 'A', patchPort: 26, sw: 'CORE', swPort: 'Gi1/0/26', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-26', obs: '', updatedAt: '2026-06-12' },
+  { id: 58, sector: 'COPAS', patchPanel: 'B', patchPort: 10, sw: 'GEREN-01-SW', swPort: 'Gi1/0/10', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-10', obs: '', updatedAt: '2026-06-12' },
+  { id: 90, sector: 'UIAP', patchPanel: 'B', patchPort: 42, sw: 'GEREN-01-SW', swPort: 'Gi1/0/42', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-42', obs: '', updatedAt: '2026-06-12' },
+  { id: 122, sector: 'UIAG', patchPanel: 'C', patchPort: 26, sw: 'GEREN-02-SW', swPort: 'Gi1/0/26', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-26', obs: '', updatedAt: '2026-06-12' },
+  { id: 27, sector: 'AUDITORIO', patchPanel: 'A', patchPort: 27, sw: 'CORE', swPort: 'Gi1/0/27', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-27', obs: '', updatedAt: '2026-06-12' },
+  { id: 59, sector: 'COPAS', patchPanel: 'B', patchPort: 11, sw: 'GEREN-01-SW', swPort: 'Gi1/0/11', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-11', obs: '', updatedAt: '2026-06-12' },
+  { id: 91, sector: 'UIAP', patchPanel: 'B', patchPort: 43, sw: 'GEREN-01-SW', swPort: 'Gi1/0/43', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-43', obs: '', updatedAt: '2026-06-12' },
+  { id: 123, sector: 'UIAG', patchPanel: 'C', patchPort: 27, sw: 'GEREN-02-SW', swPort: 'Gi1/0/27', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-27', obs: '', updatedAt: '2026-06-12' },
+  { id: 28, sector: 'AUDITORIO', patchPanel: 'A', patchPort: 28, sw: 'CORE', swPort: 'Gi1/0/28', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-28', obs: '', updatedAt: '2026-06-12' },
+  { id: 60, sector: 'COPAS', patchPanel: 'B', patchPort: 12, sw: 'GEREN-01-SW', swPort: 'Gi1/0/12', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-12', obs: '', updatedAt: '2026-06-12' },
+  { id: 92, sector: 'UIAP', patchPanel: 'B', patchPort: 44, sw: 'GEREN-01-SW', swPort: 'Gi1/0/44', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-44', obs: '', updatedAt: '2026-06-12' },
+  { id: 124, sector: 'UIAG', patchPanel: 'C', patchPort: 28, sw: 'GEREN-02-SW', swPort: 'Gi1/0/28', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-28', obs: '', updatedAt: '2026-06-12' },
+  { id: 29, sector: 'AUDITORIO', patchPanel: 'A', patchPort: 29, sw: 'CORE', swPort: 'Gi1/0/29', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-29', obs: '', updatedAt: '2026-06-12' },
+  { id: 61, sector: 'COPAS', patchPanel: 'B', patchPort: 13, sw: 'GEREN-01-SW', swPort: 'Gi1/0/13', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-13', obs: '', updatedAt: '2026-06-12' },
+  { id: 93, sector: 'UIAP', patchPanel: 'B', patchPort: 45, sw: 'GEREN-01-SW', swPort: 'Gi1/0/45', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-45', obs: '', updatedAt: '2026-06-12' },
+  { id: 125, sector: 'COPLAN', patchPanel: 'C', patchPort: 29, sw: 'GEREN-02-SW', swPort: 'Gi1/0/29', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-29', obs: '', updatedAt: '2026-06-12' },
+  { id: 30, sector: 'AUDITORIO', patchPanel: 'A', patchPort: 30, sw: 'CORE', swPort: 'Gi1/0/30', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-30', obs: '', updatedAt: '2026-06-12' },
+  { id: 62, sector: 'COPAS', patchPanel: 'B', patchPort: 14, sw: 'GEREN-01-SW', swPort: 'Gi1/0/14', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-14', obs: '', updatedAt: '2026-06-12' },
+  { id: 126, sector: 'COPLAN', patchPanel: 'C', patchPort: 30, sw: 'GEREN-02-SW', swPort: 'Gi1/0/30', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-30', obs: '', updatedAt: '2026-06-12' },
+  { id: 31, sector: 'AUDITORIO', patchPanel: 'A', patchPort: 31, sw: 'CORE', swPort: 'Gi1/0/31', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-31', obs: '', updatedAt: '2026-06-12' },
+  { id: 63, sector: 'COPAS', patchPanel: 'B', patchPort: 15, sw: 'GEREN-01-SW', swPort: 'Gi1/0/15', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-15', obs: '', updatedAt: '2026-06-12' },
+  { id: 32, sector: 'AUDITORIO', patchPanel: 'A', patchPort: 32, sw: 'CORE', swPort: 'Gi1/0/32', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'A-32', obs: '', updatedAt: '2026-06-12' },
+  { id: 64, sector: 'COPAS', patchPanel: 'B', patchPort: 16, sw: 'GEREN-01-SW', swPort: 'Gi1/0/16', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'B-16', obs: '', updatedAt: '2026-06-12' },
+  { id: 161, sector: 'NUDIT', patchPanel: 'D', patchPort: 17, sw: 'GEREN-03-SW', swPort: 'Gi1/0/17', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-17', obs: '', updatedAt: '2026-06-12' },
+  { id: 193, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 1, sw: 'DIST-01-SW', swPort: 'Gi1/0/1', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-01', obs: '', updatedAt: '2026-06-12' },
+  { id: 225, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 33, sw: 'DIST-01-SW', swPort: 'Gi1/0/33', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-33', obs: '', updatedAt: '2026-06-12' },
+  { id: 162, sector: 'NUDIT', patchPanel: 'D', patchPort: 18, sw: 'GEREN-03-SW', swPort: 'Gi1/0/18', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-18', obs: '', updatedAt: '2026-06-12' },
+  { id: 194, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 2, sw: 'DIST-01-SW', swPort: 'Gi1/0/2', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-02', obs: '', updatedAt: '2026-06-12' },
+  { id: 226, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 34, sw: 'DIST-01-SW', swPort: 'Gi1/0/34', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-34', obs: '', updatedAt: '2026-06-12' },
+  { id: 131, sector: 'COPLAN', patchPanel: 'C', patchPort: 35, sw: 'GEREN-02-SW', swPort: 'Gi1/0/35', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-35', obs: '', updatedAt: '2026-06-12' },
+  { id: 163, sector: 'NUDIT', patchPanel: 'D', patchPort: 19, sw: 'GEREN-03-SW', swPort: 'Gi1/0/19', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-19', obs: '', updatedAt: '2026-06-12' },
+  { id: 195, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 3, sw: 'DIST-01-SW', swPort: 'Gi1/0/3', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-03', obs: '', updatedAt: '2026-06-12' },
+  { id: 132, sector: 'COPLAN', patchPanel: 'C', patchPort: 36, sw: 'GEREN-02-SW', swPort: 'Gi1/0/36', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-36', obs: '', updatedAt: '2026-06-12' },
+  { id: 164, sector: 'NUDIT', patchPanel: 'D', patchPort: 20, sw: 'GEREN-03-SW', swPort: 'Gi1/0/20', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-20', obs: '', updatedAt: '2026-06-12' },
+  { id: 196, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 4, sw: 'DIST-01-SW', swPort: 'Gi1/0/4', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-04', obs: '', updatedAt: '2026-06-12' },
+  { id: 133, sector: 'COPLAN', patchPanel: 'C', patchPort: 37, sw: 'GEREN-02-SW', swPort: 'Gi1/0/37', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-37', obs: '', updatedAt: '2026-06-12' },
+  { id: 165, sector: 'NUDIT', patchPanel: 'D', patchPort: 21, sw: 'GEREN-03-SW', swPort: 'Gi1/0/21', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-21', obs: '', updatedAt: '2026-06-12' },
+  { id: 197, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 5, sw: 'DIST-01-SW', swPort: 'Gi1/0/5', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-05', obs: '', updatedAt: '2026-06-12' },
+  { id: 134, sector: 'COPLAN', patchPanel: 'C', patchPort: 38, sw: 'GEREN-02-SW', swPort: 'Gi1/0/38', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-38', obs: '', updatedAt: '2026-06-12' },
+  { id: 166, sector: 'NUDIT', patchPanel: 'D', patchPort: 22, sw: 'GEREN-03-SW', swPort: 'Gi1/0/22', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-22', obs: '', updatedAt: '2026-06-12' },
+  { id: 198, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 6, sw: 'DIST-01-SW', swPort: 'Gi1/0/6', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-06', obs: '', updatedAt: '2026-06-12' },
+  { id: 135, sector: 'COPLAN', patchPanel: 'C', patchPort: 39, sw: 'GEREN-02-SW', swPort: 'Gi1/0/39', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-39', obs: '', updatedAt: '2026-06-12' },
+  { id: 167, sector: 'NUDIT', patchPanel: 'D', patchPort: 23, sw: 'GEREN-03-SW', swPort: 'Gi1/0/23', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-23', obs: '', updatedAt: '2026-06-12' },
+  { id: 199, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 7, sw: 'DIST-01-SW', swPort: 'Gi1/0/7', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-07', obs: '', updatedAt: '2026-06-12' },
+  { id: 231, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 39, sw: 'DIST-01-SW', swPort: 'Gi1/0/39', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-39', obs: '', updatedAt: '2026-06-12' },
+  { id: 136, sector: 'COPLAN', patchPanel: 'C', patchPort: 40, sw: 'GEREN-02-SW', swPort: 'Gi1/0/40', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-40', obs: '', updatedAt: '2026-06-12' },
+  { id: 168, sector: 'NUDIT', patchPanel: 'D', patchPort: 24, sw: 'GEREN-03-SW', swPort: 'Gi1/0/24', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-24', obs: '', updatedAt: '2026-06-12' },
+  { id: 200, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 8, sw: 'DIST-01-SW', swPort: 'Gi1/0/8', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-08', obs: '', updatedAt: '2026-06-12' },
+  { id: 232, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 40, sw: 'DIST-01-SW', swPort: 'Gi1/0/40', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-40', obs: '', updatedAt: '2026-06-12' },
+  { id: 137, sector: 'DARK ROOM', patchPanel: 'C', patchPort: 41, sw: 'GEREN-02-SW', swPort: 'Gi1/0/41', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-41', obs: '', updatedAt: '2026-06-12' },
+  { id: 201, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 9, sw: 'DIST-01-SW', swPort: 'Gi1/0/9', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-09', obs: '', updatedAt: '2026-06-12' },
+  { id: 233, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 41, sw: 'DIST-01-SW', swPort: 'Gi1/0/41', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-41', obs: '', updatedAt: '2026-06-12' },
+  { id: 138, sector: 'DARK ROOM', patchPanel: 'C', patchPort: 42, sw: 'GEREN-02-SW', swPort: 'Gi1/0/42', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-42', obs: '', updatedAt: '2026-06-12' },
+  { id: 202, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 10, sw: 'DIST-01-SW', swPort: 'Gi1/0/10', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-10', obs: '', updatedAt: '2026-06-12' },
+  { id: 234, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 42, sw: 'DIST-01-SW', swPort: 'Gi1/0/42', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-42', obs: '', updatedAt: '2026-06-12' },
+  { id: 203, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 11, sw: 'DIST-01-SW', swPort: 'Gi1/0/11', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-11', obs: '', updatedAt: '2026-06-12' },
+  { id: 235, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 43, sw: 'DIST-01-SW', swPort: 'Gi1/0/43', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-43', obs: '', updatedAt: '2026-06-12' },
+  { id: 204, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 12, sw: 'DIST-01-SW', swPort: 'Gi1/0/12', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-12', obs: '', updatedAt: '2026-06-12' },
+  { id: 236, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 44, sw: 'DIST-01-SW', swPort: 'Gi1/0/44', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-44', obs: '', updatedAt: '2026-06-12' },
+  { id: 141, sector: 'DARK ROOM', patchPanel: 'C', patchPort: 45, sw: 'GEREN-02-SW', swPort: 'Gi1/0/45', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-45', obs: '', updatedAt: '2026-06-12' },
+  { id: 173, sector: 'UCI', patchPanel: 'D', patchPort: 29, sw: 'GEREN-03-SW', swPort: 'Gi1/0/29', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-29', obs: '', updatedAt: '2026-06-12' },
+  { id: 205, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 13, sw: 'DIST-01-SW', swPort: 'Gi1/0/13', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-13', obs: '', updatedAt: '2026-06-12' },
+  { id: 237, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 45, sw: 'DIST-01-SW', swPort: 'Gi1/0/45', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-45', obs: '', updatedAt: '2026-06-12' },
+  { id: 142, sector: 'DARK ROOM', patchPanel: 'C', patchPort: 46, sw: 'GEREN-02-SW', swPort: 'Gi1/0/46', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'C-46', obs: '', updatedAt: '2026-06-12' },
+  { id: 174, sector: 'UCI', patchPanel: 'D', patchPort: 30, sw: 'GEREN-03-SW', swPort: 'Gi1/0/30', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-30', obs: '', updatedAt: '2026-06-12' },
+  { id: 206, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 14, sw: 'DIST-01-SW', swPort: 'Gi1/0/14', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-14', obs: '', updatedAt: '2026-06-12' },
+  { id: 238, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 46, sw: 'DIST-01-SW', swPort: 'Gi1/0/46', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-46', obs: '', updatedAt: '2026-06-12' },
+  { id: 175, sector: 'UCI', patchPanel: 'D', patchPort: 31, sw: 'GEREN-03-SW', swPort: 'Gi1/0/31', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-31', obs: '', updatedAt: '2026-06-12' },
+  { id: 207, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 15, sw: 'DIST-01-SW', swPort: 'Gi1/0/15', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-15', obs: '', updatedAt: '2026-06-12' },
+  { id: 239, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 47, sw: 'DIST-01-SW', swPort: 'Gi1/0/47', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-47', obs: '', updatedAt: '2026-06-12' },
+  { id: 176, sector: 'UCI', patchPanel: 'D', patchPort: 32, sw: 'GEREN-03-SW', swPort: 'Gi1/0/32', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-32', obs: '', updatedAt: '2026-06-12' },
+  { id: 208, sector: 'COSAN SUPAE', patchPanel: 'E', patchPort: 16, sw: 'DIST-01-SW', swPort: 'Gi1/0/16', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-16', obs: '', updatedAt: '2026-06-12' },
+  { id: 240, sector: 'SUAS PSE', patchPanel: 'E', patchPort: 48, sw: 'DIST-01-SW', swPort: 'Gi1/0/48', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-48', obs: '', updatedAt: '2026-06-12' },
+  { id: 145, sector: 'ASSETI INFRA', patchPanel: 'D', patchPort: 1, sw: 'GEREN-03-SW', swPort: 'Gi1/0/1', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-01', obs: '', updatedAt: '2026-06-12' },
+  { id: 177, sector: 'UCI', patchPanel: 'D', patchPort: 33, sw: 'GEREN-03-SW', swPort: 'Gi1/0/33', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-33', obs: '', updatedAt: '2026-06-12' },
+  { id: 209, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 17, sw: 'DIST-01-SW', swPort: 'Gi1/0/17', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-17', obs: '', updatedAt: '2026-06-12' },
+  { id: 241, sector: 'SUAS PSE', patchPanel: 'F', patchPort: 1, sw: 'DIST-02-SW', swPort: 'Gi1/0/1', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-01', obs: '', updatedAt: '2026-06-12' },
+  { id: 146, sector: 'ASSETI INFRA', patchPanel: 'D', patchPort: 2, sw: 'GEREN-03-SW', swPort: 'Gi1/0/2', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-02', obs: '', updatedAt: '2026-06-12' },
+  { id: 178, sector: 'UCI', patchPanel: 'D', patchPort: 34, sw: 'GEREN-03-SW', swPort: 'Gi1/0/34', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-34', obs: '', updatedAt: '2026-06-12' },
+  { id: 210, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 18, sw: 'DIST-01-SW', swPort: 'Gi1/0/18', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-18', obs: '', updatedAt: '2026-06-12' },
+  { id: 242, sector: 'SUAS PSE', patchPanel: 'F', patchPort: 2, sw: 'DIST-02-SW', swPort: 'Gi1/0/2', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-02', obs: '', updatedAt: '2026-06-12' },
+  { id: 147, sector: 'ASSETI INFRA', patchPanel: 'D', patchPort: 3, sw: 'GEREN-03-SW', swPort: 'Gi1/0/3', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-03', obs: '', updatedAt: '2026-06-12' },
+  { id: 211, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 19, sw: 'DIST-01-SW', swPort: 'Gi1/0/19', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-19', obs: '', updatedAt: '2026-06-12' },
+  { id: 243, sector: 'SUAS PSE', patchPanel: 'F', patchPort: 3, sw: 'DIST-02-SW', swPort: 'Gi1/0/3', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-03', obs: '', updatedAt: '2026-06-12' },
+  { id: 148, sector: 'ASSETI INFRA', patchPanel: 'D', patchPort: 4, sw: 'GEREN-03-SW', swPort: 'Gi1/0/4', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-04', obs: '', updatedAt: '2026-06-12' },
+  { id: 212, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 20, sw: 'DIST-01-SW', swPort: 'Gi1/0/20', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-20', obs: '', updatedAt: '2026-06-12' },
+  { id: 244, sector: 'SUAS PSE', patchPanel: 'F', patchPort: 4, sw: 'DIST-02-SW', swPort: 'Gi1/0/4', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-04', obs: '', updatedAt: '2026-06-12' },
+  { id: 149, sector: 'COPES', patchPanel: 'D', patchPort: 5, sw: 'GEREN-03-SW', swPort: 'Gi1/0/5', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-05', obs: '', updatedAt: '2026-06-12' },
+  { id: 213, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 21, sw: 'DIST-01-SW', swPort: 'Gi1/0/21', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-21', obs: '', updatedAt: '2026-06-12' },
+  { id: 245, sector: 'SUAS PSE', patchPanel: 'F', patchPort: 5, sw: 'DIST-02-SW', swPort: 'Gi1/0/5', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-05', obs: '', updatedAt: '2026-06-12' },
+  { id: 150, sector: 'COPES', patchPanel: 'D', patchPort: 6, sw: 'GEREN-03-SW', swPort: 'Gi1/0/6', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-06', obs: '', updatedAt: '2026-06-12' },
+  { id: 214, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 22, sw: 'DIST-01-SW', swPort: 'Gi1/0/22', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-22', obs: '', updatedAt: '2026-06-12' },
+  { id: 246, sector: 'SUAS PSE', patchPanel: 'F', patchPort: 6, sw: 'DIST-02-SW', swPort: 'Gi1/0/6', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-06', obs: '', updatedAt: '2026-06-12' },
+  { id: 151, sector: 'COPES', patchPanel: 'D', patchPort: 7, sw: 'GEREN-03-SW', swPort: 'Gi1/0/7', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-07', obs: '', updatedAt: '2026-06-12' },
+  { id: 215, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 23, sw: 'DIST-01-SW', swPort: 'Gi1/0/23', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-23', obs: '', updatedAt: '2026-06-12' },
+  { id: 247, sector: 'FEAS', patchPanel: 'F', patchPort: 7, sw: 'DIST-02-SW', swPort: 'Gi1/0/7', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-07', obs: '', updatedAt: '2026-06-12' },
+  { id: 152, sector: 'COPES', patchPanel: 'D', patchPort: 8, sw: 'GEREN-03-SW', swPort: 'Gi1/0/8', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-08', obs: '', updatedAt: '2026-06-12' },
+  { id: 216, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 24, sw: 'DIST-01-SW', swPort: 'Gi1/0/24', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-24', obs: '', updatedAt: '2026-06-12' },
+  { id: 248, sector: 'FEAS', patchPanel: 'F', patchPort: 8, sw: 'DIST-02-SW', swPort: 'Gi1/0/8', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-08', obs: '', updatedAt: '2026-06-12' },
+  { id: 153, sector: 'COPES', patchPanel: 'D', patchPort: 9, sw: 'GEREN-03-SW', swPort: 'Gi1/0/9', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-09', obs: '', updatedAt: '2026-06-12' },
+  { id: 217, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 25, sw: 'DIST-01-SW', swPort: 'Gi1/0/25', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-25', obs: '', updatedAt: '2026-06-12' },
+  { id: 249, sector: 'SUGEP', patchPanel: 'F', patchPort: 9, sw: 'DIST-02-SW', swPort: 'Gi1/0/9', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-09', obs: '', updatedAt: '2026-06-12' },
+  { id: 154, sector: 'COPES', patchPanel: 'D', patchPort: 10, sw: 'GEREN-03-SW', swPort: 'Gi1/0/10', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-10', obs: '', updatedAt: '2026-06-12' },
+  { id: 218, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 26, sw: 'DIST-01-SW', swPort: 'Gi1/0/26', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-26', obs: '', updatedAt: '2026-06-12' },
+  { id: 250, sector: 'SUGEP', patchPanel: 'F', patchPort: 10, sw: 'DIST-02-SW', swPort: 'Gi1/0/10', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-10', obs: '', updatedAt: '2026-06-12' },
+  { id: 155, sector: 'COPES', patchPanel: 'D', patchPort: 11, sw: 'GEREN-03-SW', swPort: 'Gi1/0/11', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-11', obs: '', updatedAt: '2026-06-12' },
+  { id: 219, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 27, sw: 'DIST-01-SW', swPort: 'Gi1/0/27', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-27', obs: '', updatedAt: '2026-06-12' },
+  { id: 156, sector: 'COPES', patchPanel: 'D', patchPort: 12, sw: 'GEREN-03-SW', swPort: 'Gi1/0/12', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-12', obs: '', updatedAt: '2026-06-12' },
+  { id: 220, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 28, sw: 'DIST-01-SW', swPort: 'Gi1/0/28', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-28', obs: '', updatedAt: '2026-06-12' },
+  { id: 157, sector: 'COPES', patchPanel: 'D', patchPort: 13, sw: 'GEREN-03-SW', swPort: 'Gi1/0/13', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-13', obs: '', updatedAt: '2026-06-12' },
+  { id: 189, sector: 'COSAN SUPAE', patchPanel: 'D', patchPort: 45, sw: 'GEREN-03-SW', swPort: 'Gi1/0/45', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-45', obs: '', updatedAt: '2026-06-12' },
+  { id: 221, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 29, sw: 'DIST-01-SW', swPort: 'Gi1/0/29', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-29', obs: '', updatedAt: '2026-06-12' },
+  { id: 158, sector: 'COPES', patchPanel: 'D', patchPort: 14, sw: 'GEREN-03-SW', swPort: 'Gi1/0/14', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-14', obs: '', updatedAt: '2026-06-12' },
+  { id: 190, sector: 'COSAN SUPAE', patchPanel: 'D', patchPort: 46, sw: 'GEREN-03-SW', swPort: 'Gi1/0/46', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-46', obs: '', updatedAt: '2026-06-12' },
+  { id: 222, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 30, sw: 'DIST-01-SW', swPort: 'Gi1/0/30', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-30', obs: '', updatedAt: '2026-06-12' },
+  { id: 159, sector: 'COPES', patchPanel: 'D', patchPort: 15, sw: 'GEREN-03-SW', swPort: 'Gi1/0/15', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-15', obs: '', updatedAt: '2026-06-12' },
+  { id: 191, sector: 'COSAN SUPAE', patchPanel: 'D', patchPort: 47, sw: 'GEREN-03-SW', swPort: 'Gi1/0/47', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-47', obs: '', updatedAt: '2026-06-12' },
+  { id: 223, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 31, sw: 'DIST-01-SW', swPort: 'Gi1/0/31', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-31', obs: '', updatedAt: '2026-06-12' },
+  { id: 255, sector: 'COSAN SUPROG', patchPanel: 'F', patchPort: 15, sw: 'DIST-02-SW', swPort: 'Gi1/0/15', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-15', obs: '', updatedAt: '2026-06-12' },
+  { id: 160, sector: 'COPES', patchPanel: 'D', patchPort: 16, sw: 'GEREN-03-SW', swPort: 'Gi1/0/16', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-16', obs: '', updatedAt: '2026-06-12' },
+  { id: 192, sector: 'COSAN SUPAE', patchPanel: 'D', patchPort: 48, sw: 'GEREN-03-SW', swPort: 'Gi1/0/48', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'D-48', obs: '', updatedAt: '2026-06-12' },
+  { id: 224, sector: 'SUAS PSB', patchPanel: 'E', patchPort: 32, sw: 'DIST-01-SW', swPort: 'Gi1/0/32', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'E-32', obs: '', updatedAt: '2026-06-12' },
+  { id: 256, sector: 'COSAN SUPROG', patchPanel: 'F', patchPort: 16, sw: 'DIST-02-SW', swPort: 'Gi1/0/16', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-16', obs: '', updatedAt: '2026-06-12' },
+  { id: 257, sector: 'SUGEP', patchPanel: 'F', patchPort: 33, sw: 'GEREN-02-SW', swPort: 'Gi1/0/33', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-33', obs: '', updatedAt: '2026-06-12' },
+  { id: 258, sector: 'SUGEP', patchPanel: 'F', patchPort: 34, sw: 'GEREN-02-SW', swPort: 'Gi1/0/34', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-34', obs: '', updatedAt: '2026-06-12' },
+  { id: 259, sector: 'VIG', patchPanel: 'F', patchPort: 35, sw: 'GEREN-02-SW', swPort: 'Gi1/0/35', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-35', obs: '', updatedAt: '2026-06-12' },
+  { id: 260, sector: 'VIG', patchPanel: 'F', patchPort: 36, sw: 'GEREN-02-SW', swPort: 'Gi1/0/36', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-36', obs: '', updatedAt: '2026-06-12' },
+  { id: 261, sector: 'VIG', patchPanel: 'F', patchPort: 37, sw: 'GEREN-02-SW', swPort: 'Gi1/0/37', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-37', obs: '', updatedAt: '2026-06-12' },
+  { id: 266, sector: 'ASSEJU', patchPanel: 'F', patchPort: 42, sw: 'GEREN-02-SW', swPort: 'Gi1/0/42', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-42', obs: '', updatedAt: '2026-06-12' },
+  { id: 267, sector: 'ASSEJU', patchPanel: 'F', patchPort: 43, sw: 'GEREN-02-SW', swPort: 'Gi1/0/43', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-43', obs: '', updatedAt: '2026-06-12' },
+  { id: 268, sector: 'ASSEJU', patchPanel: 'F', patchPort: 44, sw: 'GEREN-02-SW', swPort: 'Gi1/0/44', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-44', obs: '', updatedAt: '2026-06-12' },
+  { id: 269, sector: 'ASSEJU', patchPanel: 'F', patchPort: 45, sw: 'GEREN-02-SW', swPort: 'Gi1/0/45', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-45', obs: '', updatedAt: '2026-06-12' },
+  { id: 270, sector: 'ASSEJU', patchPanel: 'F', patchPort: 46, sw: 'GEREN-02-SW', swPort: 'Gi1/0/46', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-46', obs: '', updatedAt: '2026-06-12' },
+  { id: 271, sector: 'ASSEJU', patchPanel: 'F', patchPort: 47, sw: 'GEREN-02-SW', swPort: 'Gi1/0/47', vlan: null, vlanName: null, device: '—', status: 'ativo', point: 'F-47', obs: '', updatedAt: '2026-06-12' },
 ];

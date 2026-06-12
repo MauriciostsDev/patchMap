@@ -24,6 +24,9 @@ web-build/
 # A cópia local em ./backend é mantida para dev, mas não é mais versionada aqui.
 /backend/
 
+# Planilha-fonte dos dados (os dados já estão nos seeds versionados).
+Pontos sethas*.pdf
+
 # TypeScript
 *.tsbuildinfo
 

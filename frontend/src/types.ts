@@ -14,8 +14,8 @@ export type DeviceType =
 
 export interface Sector {
   name: string;
-  vlan: number;
-  vlanName: string;
+  vlan: number | null;
+  vlanName: string | null;
 }
 
 export interface Vlan {
