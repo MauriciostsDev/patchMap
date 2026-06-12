@@ -14,7 +14,7 @@
   - 6 telas funcionais (Login, Lista, Detalhe, Formulário, VLANs, Painel, Ajustes)
   - Store Zustand + persistência AsyncStorage
   - Tema claro/escuro + 4 cores de acento + densidade ajustável
-  - 34 conexões seed (10 setores, 7 patch panels, 5 switches)
+  - dados reais (SETHAS): 209 conexões, 26 setores, 6 patch panels, 6 switches — ver [`docs/Seed de Dados.md`](docs/Seed%20de%20Dados.md)
   - **100% funcional offline**
 
 - ✅ **Fase 2 — Backend Django + PostgreSQL (concluída)**
@@ -128,12 +128,14 @@ patchmap/
 - **Accent:** Azul, Verde, Roxo, Laranja
 - **Densidade:** Confortável / Compacta
 
-### Dados (seed)
-- 10 setores (3 prédios)
-- 7 patch panels (157 portas)
-- 5 switches (136 portas)
-- 6 VLANs
-- 34 conexões ativas
+### Dados (seed real — SETHAS)
+Importados do PDF "Pontos sethas" (só linhas com setor preenchido) —
+ver [`docs/Seed de Dados.md`](docs/Seed%20de%20Dados.md):
+- 26 setores
+- 6 patch panels (A–F)
+- 6 switches (CORE, GEREN-01/02/03-SW, DIST-01/02-SW)
+- 0 VLANs (não havia no PDF)
+- 209 conexões
 
 ## 🧪 Próximos Passos
 

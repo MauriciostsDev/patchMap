@@ -58,10 +58,11 @@ Switch` (PROTECT) e `→ VLAN` (SET_NULL, opcional).
 
 ## Seed
 
-`python manage.py seed_data` — port fiel de [[Modelo de Dados#Seed]]
-(`frontend/src/data/seed.ts`): 10 setores, 7 patch panels, 5 switches, 6 VLANs,
-34 conexões. Idempotente (`update_or_create`), rodado no boot pelo `entrypoint.sh`.
-Cria também o superusuário padrão `admin@patchmap.com` / `123456`.
+`python manage.py seed_data` popula com os **dados reais (SETHAS)**: 26 setores,
+6 patch panels (A–F), 6 switches, 0 VLANs e **209 conexões** — ver [[Seed de Dados]].
+Idempotente e destrutivo p/ os dados (limpa e recria a cada execução); cria também
+o superusuário `admin@patchmap.com` / `123456`. Rodado no boot pelo `entrypoint.sh`
+(Docker) ou manualmente.
 
 ## Sincronização offline (ainda planejada)
 
