@@ -2,7 +2,7 @@
 
 > 📦 **Backend migrado:** o `docker-compose.yml` deste repo agora sobe **só o
 > frontend**. O backend Django + Postgres vivem no repo
-> [pathMapApi](https://github.com/MauriciostsDev/pathMapApi). Guia atual de
+> [patchMapApi](https://github.com/MauriciostsDev/patchMapApi). Guia atual de
 > execução: [[../EXECUTAR|EXECUTAR.md]].
 
 ## Serviços (docker-compose.yml)
@@ -10,8 +10,8 @@
 | Serviço   | Estado | Porta(s) | Descrição |
 |-----------|--------|----------|-----------|
 | `frontend`| ✅     | 8081 (Metro), 19000/19006 (Expo) | Expo dev server. Web em `http://localhost:19006`. |
-| `backend` | ➡️ movido | 8000  | Django + DRF — agora no repo [pathMapApi](https://github.com/MauriciostsDev/pathMapApi) ([[API Backend]] = contrato). |
-| `db`      | ➡️ movido | 5432  | PostgreSQL — junto do backend no [pathMapApi](https://github.com/MauriciostsDev/pathMapApi). |
+| `backend` | ➡️ movido | 8000  | Django + DRF — agora no repo [patchMapApi](https://github.com/MauriciostsDev/patchMapApi) ([[API Backend]] = contrato). |
+| `db`      | ➡️ movido | 5432  | PostgreSQL — junto do backend no [patchMapApi](https://github.com/MauriciostsDev/patchMapApi). |
 
 ## Rodar o frontend (mock)
 
@@ -38,20 +38,24 @@ npm start        # QR code → app Expo Go no celular
   container serve principalmente como ambiente reprodutível e para a versão web.
 - `REACT_NATIVE_PACKAGER_HOSTNAME` pode precisar ser ajustado conforme a rede.
 
-## Rodar o backend (Django + DRF)
+## Rodar o backend (Django + DRF) — repo [patchMapApi](https://github.com/MauriciostsDev/patchMapApi)
+
+O backend saiu deste monorepo. No repo próprio ele tem `docker-compose.yml`
+(backend + Postgres):
 
 ```bash
-docker compose up --build backend db
+git clone https://github.com/MauriciostsDev/patchMapApi.git
+cd patchMapApi
+docker compose up --build
 # API:   http://localhost:8000/
 # Admin: http://localhost:8000/admin/  (admin@patchmap.com / 123456)
 ```
 
-O `backend/entrypoint.sh` espera o Postgres ficar saudável, aplica as migrations,
-roda o seed (idempotente) e cria o superusuário antes de subir o servidor.
-Subir tudo de uma vez: `docker compose up --build`. Detalhes em [[API Backend]]
-e em `backend/README.md`.
+O `entrypoint.sh` espera o Postgres, aplica migrations, roda o seed (idempotente)
+e cria o superusuário antes de subir o servidor. Guia completo de execução
+(backend + frontend): [[../EXECUTAR|EXECUTAR.md]].
 
-## Próximos passos de infra
+## Conexão frontend ↔ backend (Fase 3 ✅)
 
-Conectar o frontend ao backend: definir `EXPO_PUBLIC_API_URL` apontando para o
-serviço `backend` e trocar o store mock pela camada de API (Fase 3).
+Feita: o app aponta para `http://10.0.2.2:8000` no emulador (override por
+`EXPO_PUBLIC_API_URL` / `expo.extra.apiUrl`). Ver [[Integração Frontend-Backend]].

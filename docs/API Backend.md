@@ -2,7 +2,7 @@
 
 > **Status:** implementado e integrado (Fase 3). 📦 O código do backend Django +
 > DRF foi migrado para o repositório próprio
-> **[pathMapApi](https://github.com/MauriciostsDev/pathMapApi)** (rode a API de
+> **[patchMapApi](https://github.com/MauriciostsDev/patchMapApi)** (rode a API de
 > lá). Este documento descreve o **contrato** REST consumido pelo frontend —
 > ver [[Integração Frontend-Backend]]. Como rodar: [[../EXECUTAR|EXECUTAR.md]].
 
@@ -50,7 +50,7 @@ GET    /vlans/            → VLAN[]                    (read-only)
 > **Permissões:** leitura é pública; escrita exige JWT (`IsAuthenticatedOrReadOnly`).
 > O router do DRF usa barra final (`/points/`). O admin do Django fica em `/admin/`.
 
-## Modelos (`backend/network/models.py`)
+## Modelos (`network/models.py` no [patchMapApi](https://github.com/MauriciostsDev/patchMapApi))
 
 `Sector` · `PatchPanel` · `Switch` · `VLAN` · `ConnectionPoint` — espelham o TS.
 Campos `?` viram `null=True/blank=True`. FKs: `ConnectionPoint → Sector/PatchPanel/
@@ -71,8 +71,15 @@ Cria também o superusuário padrão `admin@patchmap.com` / `123456`.
 
 ## Como rodar
 
+No repo do backend [patchMapApi](https://github.com/MauriciostsDev/patchMapApi)
+(tem `docker-compose.yml` próprio):
+
 ```bash
-docker compose up --build backend db
+git clone https://github.com/MauriciostsDev/patchMapApi.git
+cd patchMapApi
+docker compose up --build
 # API:    http://localhost:8000/
 # Admin:  http://localhost:8000/admin/  (admin@patchmap.com / 123456)
 ```
+
+Guia completo (backend + frontend): [[../EXECUTAR|EXECUTAR.md]].

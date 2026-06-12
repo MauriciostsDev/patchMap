@@ -15,6 +15,7 @@
 - [x] Endpoints REST em camelCase ([[API Backend]])
 - [x] Auth JWT (login + refresh)
 - [x] Backend rodando e validado localmente (login + CRUD + auth) — ver [[Integração Frontend-Backend]]
+- [x] **Backend extraído p/ repo próprio** [patchMapApi](https://github.com/MauriciostsDev/patchMapApi) com docker-compose próprio — ver [[decisoes/0006 - Backend em repositório próprio]]
 
 ## 🟢 Fase 3 — Integração + sincronização offline (concluída no MVP)
 Detalhe em [[Integração Frontend-Backend]] · base: [[decisoes/0005 - Camada de API e autenticação real]].

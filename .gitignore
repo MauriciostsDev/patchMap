@@ -20,7 +20,7 @@ web-build/
 /frontend/ios/
 **/local.properties
 
-# Backend migrado p/ repositório próprio: https://github.com/MauriciostsDev/pathMapApi
+# Backend migrado p/ repositório próprio: https://github.com/MauriciostsDev/patchMapApi
 # A cópia local em ./backend é mantida para dev, mas não é mais versionada aqui.
 /backend/
 

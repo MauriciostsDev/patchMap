@@ -11,9 +11,10 @@
 - [[Arquitetura Frontend]] — Expo/React Native, store, navegação, estrutura de pastas.
 - [[Telas]] — descrição de cada uma das 6 telas e suas interações.
 - [[Design Tokens]] — cores, fontes, raios, espaçamentos, tema claro/escuro.
-- [[API Backend]] — contrato REST implementado (Django + DRF + JWT). 📦 Código no repo próprio: https://github.com/MauriciostsDev/pathMapApi
+- [[API Backend]] — contrato REST implementado (Django + DRF + JWT). 📦 Código no repo próprio: https://github.com/MauriciostsDev/patchMapApi
 - [[Integração Frontend-Backend]] — como o app conversa com o backend (camada `src/api/`, JWT). **Fase 3.**
-- [[Docker e Execução]] — como rodar tudo, portas, caveats.
+- [[../EXECUTAR|EXECUTAR.md]] — **guia de execução atual** (backend em [patchMapApi](https://github.com/MauriciostsDev/patchMapApi) + frontend dev build).
+- [[Docker e Execução]] — serviços, portas, caveats.
 - [[Roadmap]] — o que está feito e o que vem a seguir.
 
 ## Decisões
@@ -23,13 +24,14 @@
 - [[decisoes/0003 - Mock offline antes do backend]]
 - [[decisoes/0004 - Backend espelha o contrato do frontend]]
 - [[decisoes/0005 - Camada de API e autenticação real]]
+- [[decisoes/0006 - Backend em repositório próprio]]
 
 ## Estado atual (2026-06-11)
 
 | Camada    | Status            | Nota |
 |-----------|-------------------|------|
 | Frontend  | ✅ Expo SDK 53 (RN 0.79) — dev build 16KB-aligned | [[Arquitetura Frontend]] |
-| Backend   | ✅ Django + DRF + JWT — migrado p/ repo [pathMapApi](https://github.com/MauriciostsDev/pathMapApi) | [[API Backend]] |
+| Backend   | ✅ Django + DRF + JWT — migrado p/ repo [patchMapApi](https://github.com/MauriciostsDev/patchMapApi) | [[API Backend]] |
 | Docker    | ✅ Frontend + Backend + Postgres | [[Docker e Execução]] |
 | Integração front ↔ back | 🟢 Fase 3 (MVP): login JWT + sync de dados + fila offline | [[Integração Frontend-Backend]] |
 

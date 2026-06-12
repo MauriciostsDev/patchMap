@@ -1,66 +1,52 @@
 # 🚀 Quick Start — PatchMap
 
-## 1. Rodar o frontend (web + Metro)
+> Guia completo e atualizado: **[`EXECUTAR.md`](EXECUTAR.md)**. Este é o resumo.
+
+O projeto são **dois repositórios** (clone os dois lado a lado):
+- **`patchMap`** (este) — frontend Expo + documentação
+- **[`patchMapApi`](https://github.com/MauriciostsDev/patchMapApi)** — backend Django
+
+## 1. Backend (API + banco)
 
 ```bash
-docker-compose up frontend
+git clone https://github.com/MauriciostsDev/patchMapApi.git
+cd patchMapApi
+docker compose up --build          # backend + Postgres
+# ou local: python -m venv .venv && pip install -r requirements.txt
+#           && python manage.py migrate && python manage.py seed_data
+#           && python manage.py runserver 0.0.0.0:8000
 ```
 
-Acesse **http://localhost:19006** no navegador.
+- **API:** http://localhost:8000/ · **Admin:** http://localhost:8000/admin/
+- Login: `admin@patchmap.com` / `123456` (autenticação real via JWT)
 
-Login (mock — aceita qualquer credencial):
-- E-mail: `admin@patchmap.com`
-- Senha: `123456`
-
-## 2. Testar no celular (Expo Go)
-
-1. Instale o **Expo Go** no celular (iOS / Android)
-2. Certifique-se que celular e PC estão na **mesma rede Wi-Fi**
-3. Acesse **http://localhost:19000** no navegador do PC
-4. Escaneie o QR code com o Expo Go
-
-## 3. Rodar o backend (API + Postgres)
+## 2. Frontend (app no emulador)
 
 ```bash
-docker compose up --build backend db
+cd frontend
+npm install
+npx expo run:android      # development build (NÃO Expo Go), emulador aberto
 ```
 
-- **API:** http://localhost:8000/
-- **Admin Django:** http://localhost:8000/admin/ — `admin@patchmap.com` / `123456`
+> ⚠️ O emulador (Android 15+) usa páginas de **16 KB** — o **Expo Go não é
+> compatível**. Por isso o **dev build**. Detalhes/troubleshooting em
+> [`EXECUTAR.md`](EXECUTAR.md).
 
-O entrypoint aplica migrations e roda o seed automaticamente. Contrato da API em
-[`docs/API Backend.md`](docs/API%20Backend.md) e [`backend/README.md`](backend/README.md).
+No app, faça login com `admin@patchmap.com` / `123456` → lista carrega os
+**34 pontos reais** do backend.
 
-Subir frontend + backend + banco de uma vez: `docker compose up --build`.
+## 3. Contexto para IAs
 
-## 4. Contexto para IAs
-
-Se você é uma IA tocando o projeto:  
-👉 Leia **[`docs/00 - Índice.md`](docs/00%20-%20Índice.md)** — a vault Obsidian tem todo o contexto.
+👉 Leia **[`docs/00 - Índice.md`](docs/00%20-%20Índice.md)** — a vault Obsidian
+tem todo o contexto (arquitetura, decisões, contrato de dados, roadmap).
 
 ## Estrutura
 
 ```
-patchmap/
-├── docs/                      # 🧠 Vault Obsidian (contexto)
-├── frontend/                  # React Native (Expo) ✅
-├── backend/                   # Django + DRF + JWT ✅
-├── docker-compose.yml
-└── README.md
-```
+patchMap/                     # este repo
+├── docs/                     # 🧠 Vault Obsidian (contexto)
+├── frontend/                 # React Native (Expo SDK 53) ✅
+├── EXECUTAR.md · docker-compose.yml (só frontend) · README.md
 
-## Comandos úteis
-
-```bash
-# Parar containers
-docker-compose down
-
-# Rebuild (após mudar Dockerfile)
-docker-compose up --build frontend
-
-# Ver logs
-docker-compose logs -f frontend
-
-# Rodar fora do Docker (local)
-cd frontend && npm start
+patchMapApi/                  # repo do backend (Django + DRF + JWT) ✅
 ```

@@ -22,7 +22,7 @@
   - Autenticação JWT (login + refresh)
   - CRUD completo de conexões + recursos de topologia (read-only)
   - Seed idempotente (port do `seed.ts`) e admin do Django
-  - 📦 **Repo próprio:** https://github.com/MauriciostsDev/pathMapApi
+  - 📦 **Repo próprio:** https://github.com/MauriciostsDev/patchMapApi
 
 - ✅ **Fase 3 — Integração frontend ↔ backend (MVP concluído)**
   - Login real via `/auth/login` (JWT + refresh + restauração de sessão)
@@ -50,9 +50,9 @@
 Resumo:
 
 ```powershell
-# Backend — repo próprio: https://github.com/MauriciostsDev/pathMapApi
-git clone https://github.com/MauriciostsDev/pathMapApi.git
-cd pathMapApi
+# Backend — repo próprio: https://github.com/MauriciostsDev/patchMapApi
+git clone https://github.com/MauriciostsDev/patchMapApi.git
+cd patchMapApi
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe manage.py migrate
@@ -104,12 +104,12 @@ patchmap/
 │   ├── package.json
 │   └── Dockerfile
 │
-├── docker-compose.yml       # só o frontend web (backend saiu p/ pathMapApi)
+├── docker-compose.yml       # só o frontend web (backend saiu p/ patchMapApi)
 ├── EXECUTAR.md              # guia de execução atual
 └── README.md
 
 # Backend (Django + DRF) → repositório próprio:
-#   https://github.com/MauriciostsDev/pathMapApi
+#   https://github.com/MauriciostsDev/patchMapApi
 ```
 
 ## 🎨 Features
@@ -143,7 +143,7 @@ patchmap/
 4. **Busca avançada** — Filtros por prédio, VLAN, tipo de dispositivo
 5. **Histórico** — Auditoria de alterações
 
-Contrato e detalhes da API: [`docs/API Backend.md`](docs/API%20Backend.md) e [`backend/README.md`](backend/README.md).
+Contrato e detalhes da API: [`docs/API Backend.md`](docs/API%20Backend.md) e o repo do backend [patchMapApi](https://github.com/MauriciostsDev/patchMapApi).
 
 ## 📖 Documentação
 

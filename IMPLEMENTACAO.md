@@ -275,7 +275,7 @@ escrita sem token retornando 401.
    - Notificações de problemas
    - Export de relatórios (PDF/CSV)
 
-**Referência:** Ver `docs/API Backend.md`, `backend/README.md` e `docs/Roadmap.md`.
+**Referência:** Ver `docs/API Backend.md`, o repo do backend [patchMapApi](https://github.com/MauriciostsDev/patchMapApi) e `docs/Roadmap.md`.
 
 ---
 

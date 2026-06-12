@@ -30,7 +30,7 @@ services:
 
   # ───────────────────────────────────────────────────────────────────────────
   # Backend (Django + DRF) e banco (PostgreSQL) foram migrados para o repo
-  # próprio: https://github.com/MauriciostsDev/pathMapApi
+  # próprio: https://github.com/MauriciostsDev/patchMapApi
   # Rode a API a partir de lá (o app aponta p/ http://10.0.2.2:8000 no emulador).
   # ───────────────────────────────────────────────────────────────────────────
 
