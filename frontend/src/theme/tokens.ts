@@ -6,50 +6,74 @@ export type ThemeMode = 'light' | 'dark';
 export type Density = 'compact' | 'regular' | 'comfy';
 
 export interface Theme {
-  bg: string;
-  surface: string;
+  bg: string;          // fundo da tela (mais escuro)
+  bgElev: string;      // barras fixas (header / bottom nav)
+  surface: string;     // cards
+  surface2: string;    // superfície interna / chips profundos
   text: string;
   muted: string;
   border: string;
   borderStrong: string;
   chip: string;
   accent: string;
-  accentInk: string;
-  accentSoft: string;
+  accentInk: string;   // texto/ícone sobre o accent
+  accentSoft: string;  // accent translúcido (fundos)
+  glow: string;        // cor do brilho do accent
+  dark: boolean;
 }
 
-// Opções de cor de destaque (do tweaks-panel do protótipo).
-export const ACCENT_OPTIONS = ['#2563eb', '#0d9488', '#7c3aed', '#ea580c', '#db2777'];
-export const DEFAULT_ACCENT = '#2563eb';
+// Cor de destaque "console" (teal neon). Opções alternativas mantidas.
+export const ACCENT_OPTIONS = ['#2dd4bf', '#38bdf8', '#a78bfa', '#fb923c', '#f472b6'];
+export const DEFAULT_ACCENT = '#2dd4bf';
 
 // ── Constrói o tema a partir do accent + modo escuro ────────────────
+// O app nasce escuro (estética de console técnico). O modo claro é mantido
+// como fallback, mas não há UI para alterná-lo.
 export function buildTheme(accent: string, dark: boolean): Theme {
-  const base = dark
-    ? {
-        bg: '#0f1419', surface: '#181f29', text: '#e8edf2', muted: '#8b97a6',
-        border: '#283341', borderStrong: '#3a4757', chip: '#212a36',
-        accentSoft: accent + '30',
-      }
-    : {
-        bg: '#f3f5f8', surface: '#ffffff', text: '#0f172a', muted: '#64748b',
-        border: '#e7ebf0', borderStrong: '#cbd5e1', chip: '#f1f4f8',
-        accentSoft: accent + '1c',
-      };
+  if (dark) {
+    return {
+      bg: '#080b11',
+      bgElev: '#0c111a',
+      surface: '#111824',
+      surface2: '#19212f',
+      text: '#e8eef5',
+      muted: '#76828f',
+      border: '#1c2531',
+      borderStrong: '#2b3645',
+      chip: '#19212f',
+      accent,
+      accentInk: '#04231f',
+      accentSoft: accent + '24',
+      glow: accent,
+      dark: true,
+    };
+  }
   return {
-    ...base,
+    bg: '#f3f5f8',
+    bgElev: '#ffffff',
+    surface: '#ffffff',
+    surface2: '#f1f4f8',
+    text: '#0f172a',
+    muted: '#64748b',
+    border: '#e7ebf0',
+    borderStrong: '#cbd5e1',
+    chip: '#f1f4f8',
     accent,
     accentInk: '#ffffff',
+    accentSoft: accent + '1c',
+    glow: accent,
+    dark: false,
   };
 }
 
-// ── Cores semânticas de status (fixas, claro/escuro) ────────────────
+// ── Cores semânticas de status (calibradas para fundo escuro) ───────
 export const STATUS_META: Record<
   ConnectionStatus,
   { label: string; color: string; icon: string }
 > = {
-  ativo: { label: 'Ativo', color: '#16a34a', icon: 'check' },
+  ativo: { label: 'Ativo', color: '#22c55e', icon: 'check' },
   inativo: { label: 'Inativo', color: '#64748b', icon: 'close' },
-  problema: { label: 'Problema', color: '#dc2626', icon: 'alert' },
+  problema: { label: 'Problema', color: '#f43f5e', icon: 'alert' },
 };
 
 export function statusColor(s: ConnectionStatus): string {

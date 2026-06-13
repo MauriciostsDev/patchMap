@@ -37,8 +37,9 @@ No app, faça login com `admin@patchmap.com` / `123456` → lista carrega os
 
 ## 3. Contexto para IAs
 
-👉 Leia **[`docs/00 - Índice.md`](docs/00%20-%20Índice.md)** — a vault Obsidian
-tem todo o contexto (arquitetura, decisões, contrato de dados, roadmap).
+👉 Leia **[`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md)** — um único arquivo com todo
+o contexto (arquitetura, modelo de dados, API, design, deploy). A pasta `docs/`
+(vault Obsidian) é histórica.
 
 ## Estrutura
 

@@ -1,4 +1,4 @@
-// LoginScreen.tsx — Tela de login (port de screen-login.jsx).
+// LoginScreen.tsx — Tela de login (estética "console técnico").
 
 import React, { useState } from 'react';
 import {
@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store';
 import { useTheme } from '../theme/useTheme';
-import { sans } from '../theme/fonts';
+import { sans, mono } from '../theme/fonts';
 import { Icon } from '../components/Icon';
 
 export function LoginScreen() {
@@ -26,6 +26,7 @@ export function LoginScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [focus, setFocus] = useState<'email' | 'pass' | null>(null);
 
   async function submit() {
     if (!email.trim() || !password.trim()) {
@@ -48,17 +49,16 @@ export function LoginScreen() {
     }
   }
 
-  const field = (extra: object) => ({
+  const field = (active: boolean, err?: boolean) => ({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     gap: 10,
     backgroundColor: t.surface,
     borderRadius: 14,
     paddingHorizontal: 14,
-    height: 52,
-    borderWidth: 1,
-    borderColor: t.border,
-    ...extra,
+    height: 54,
+    borderWidth: 1.5,
+    borderColor: err ? '#f43f5e' : active ? t.accent : t.border,
   });
   const inputBase = {
     flex: 1,
@@ -82,49 +82,90 @@ export function LoginScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
-              maxWidth: 340,
+              maxWidth: 360,
               paddingBottom: 8,
             }}
           >
-            <Image
-              source={require('../../assets/icon.png')}
-              style={{
-                width: 88,
-                height: 88,
-                borderRadius: 22,
-                marginBottom: 18,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 12 },
-                shadowOpacity: 0.18,
-                shadowRadius: 36,
-              }}
-            />
+            {/* Logo + glow */}
+            <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <View
+                style={{
+                  position: 'absolute',
+                  width: 220,
+                  height: 220,
+                  borderRadius: 999,
+                  backgroundColor: t.accent,
+                  opacity: 0.1,
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  width: 140,
+                  height: 140,
+                  borderRadius: 999,
+                  backgroundColor: t.accent,
+                  opacity: 0.12,
+                }}
+              />
+              <Image
+                source={require('../../assets/icon.png')}
+                style={{
+                  width: 92,
+                  height: 92,
+                  borderRadius: 24,
+                  borderWidth: 1,
+                  borderColor: t.borderStrong,
+                }}
+              />
+            </View>
+
             <Text
               style={{
-                fontSize: 28,
+                fontSize: 30,
                 fontFamily: sans(800),
                 color: t.text,
                 letterSpacing: -0.6,
-                marginBottom: 4,
+                marginBottom: 6,
               }}
             >
               PatchMap
             </Text>
-            <Text style={{ fontSize: 13.5, fontFamily: sans(500), color: t.muted, marginBottom: 38 }}>
-              Rastreador de Conexões de Rede
-            </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 7,
+                paddingVertical: 5,
+                paddingHorizontal: 11,
+                borderRadius: 999,
+                backgroundColor: t.surface,
+                borderWidth: 1,
+                borderColor: t.border,
+                marginBottom: 40,
+              }}
+            >
+              <View
+                style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: t.accent }}
+              />
+              <Text style={{ fontSize: 12, fontFamily: mono(500), color: t.muted, letterSpacing: 0.3 }}>
+                Rastreador de Conexões de Rede
+              </Text>
+            </View>
 
             {/* Form */}
             <View style={{ width: '100%', gap: 11 }}>
               {/* E-mail */}
-              <View style={field({})}>
-                <Icon name="mail" size={19} color={t.muted} />
+              <View style={field(focus === 'email')}>
+                <Icon name="mail" size={19} color={focus === 'email' ? t.accent : t.muted} />
                 <TextInput
                   value={email}
                   onChangeText={(v) => {
                     setEmail(v);
                     setError('');
                   }}
+                  onFocus={() => setFocus('email')}
+                  onBlur={() => setFocus(null)}
                   placeholder="usuario@orgao.gov.br"
                   placeholderTextColor={t.muted}
                   keyboardType="email-address"
@@ -135,14 +176,16 @@ export function LoginScreen() {
               </View>
 
               {/* Senha */}
-              <View style={field(error ? { borderColor: '#ef4444', borderWidth: 1.5 } : {})}>
-                <Icon name="lock" size={19} color={t.muted} />
+              <View style={field(focus === 'pass', !!error)}>
+                <Icon name="lock" size={19} color={focus === 'pass' ? t.accent : t.muted} />
                 <TextInput
                   value={password}
                   onChangeText={(v) => {
                     setPassword(v);
                     setError('');
                   }}
+                  onFocus={() => setFocus('pass')}
+                  onBlur={() => setFocus(null)}
                   placeholder="Senha"
                   placeholderTextColor={t.muted}
                   secureTextEntry={!showPass}
@@ -165,11 +208,13 @@ export function LoginScreen() {
                     paddingVertical: 9,
                     paddingHorizontal: 12,
                     borderRadius: 10,
-                    backgroundColor: 'rgba(239,68,68,0.10)',
+                    backgroundColor: 'rgba(244,63,94,0.12)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(244,63,94,0.3)',
                   }}
                 >
-                  <Icon name="alert" size={16} color="#ef4444" stroke={2.5} />
-                  <Text style={{ color: '#ef4444', fontSize: 13.5, fontFamily: sans(500), flex: 1 }}>
+                  <Icon name="alert" size={16} color="#f43f5e" stroke={2.5} />
+                  <Text style={{ color: '#fda4af', fontSize: 13.5, fontFamily: sans(500), flex: 1 }}>
                     {error}
                   </Text>
                 </View>
@@ -180,7 +225,7 @@ export function LoginScreen() {
                 onPress={submit}
                 disabled={loading}
                 style={{
-                  height: 52,
+                  height: 54,
                   borderRadius: 14,
                   backgroundColor: t.accent,
                   marginTop: 4,
@@ -189,11 +234,16 @@ export function LoginScreen() {
                   justifyContent: 'center',
                   gap: 8,
                   opacity: loading ? 0.85 : 1,
+                  shadowColor: t.accent,
+                  shadowOffset: { width: 0, height: 6 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 16,
+                  elevation: 6,
                 }}
               >
                 {loading ? (
                   <>
-                    <ActivityIndicator size="small" color="#fff" />
+                    <ActivityIndicator size="small" color={t.accentInk} />
                     <Text style={{ color: t.accentInk, fontSize: 15.5, fontFamily: sans(700) }}>
                       Autenticando…
                     </Text>
@@ -217,7 +267,7 @@ export function LoginScreen() {
           </View>
 
           {/* Rodapé */}
-          <Text style={{ fontSize: 12, fontFamily: sans(400), color: t.muted, opacity: 0.65 }}>
+          <Text style={{ fontSize: 11.5, fontFamily: mono(400), color: t.muted, opacity: 0.7 }}>
             PatchMap v1.0 · Gestão de Rede Interna
           </Text>
         </View>

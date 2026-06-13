@@ -6,11 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "patchmap",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#080b11",
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f3f5f8"
+      "backgroundColor": "#080b11"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,9 +22,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#2563eb"
+        "backgroundColor": "#080b11"
       },
       "package": "br.gov.patchmap",
+      "versionCode": 1,
       "newArchEnabled": true
     },
     "web": {
@@ -32,6 +34,9 @@
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "apiUrl": ""
+    }
   }
 }

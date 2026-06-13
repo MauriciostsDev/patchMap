@@ -133,31 +133,42 @@ export function ConnectionDetailScreen({ route, navigation }: Props) {
         contentContainerStyle={{ padding: 16, paddingBottom: 46, gap: 14 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
+        {/* Hero — badge de ID em estilo "porta de rack" */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
           <View
             style={{
-              width: 76,
-              height: 76,
-              borderRadius: 18,
+              width: 78,
+              height: 78,
+              borderRadius: 16,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: t.accentSoft,
+              gap: 5,
+              paddingTop: 4,
+              backgroundColor: t.surface2,
+              borderWidth: 1.5,
+              borderColor: sc,
             }}
           >
+            <View style={{ flexDirection: 'row', gap: 2.5 }}>
+              {[0, 1, 2, 3].map((i) => (
+                <View
+                  key={i}
+                  style={{ width: 3, height: 8, borderRadius: 1, backgroundColor: sc }}
+                />
+              ))}
+            </View>
+            <Text style={{ fontSize: 30, fontFamily: mono(700), color: t.text, lineHeight: 34 }}>
+              {String(p.id).padStart(2, '0')}
+            </Text>
             <Text
               style={{
-                fontSize: 10,
-                fontFamily: sans(700),
+                fontSize: 9.5,
+                fontFamily: mono(600),
                 letterSpacing: 0.5,
-                color: t.accent,
-                textTransform: 'uppercase',
+                color: t.muted,
               }}
             >
-              ID
-            </Text>
-            <Text style={{ fontSize: 30, fontFamily: mono(700), color: t.accent }}>
-              {String(p.id).padStart(2, '0')}
+              PP{p.patchPanel}·{String(p.patchPort).padStart(2, '0')}
             </Text>
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>

@@ -11,7 +11,7 @@ import { Icon } from './Icon';
 import { StatusBadge } from './StatusBadge';
 import { VlanTag } from './VlanTag';
 
-export function PointRow({
+function PointRowBase({
   p,
   density,
   onOpen,
@@ -142,3 +142,6 @@ export function PointRow({
     </Pressable>
   );
 }
+
+// Memoizado: numa lista virtualizada, evita re-render das linhas que não mudaram.
+export const PointRow = React.memo(PointRowBase);

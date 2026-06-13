@@ -84,6 +84,8 @@ export const useAppStore = create<AppState>()(
           set({ isLoggedIn: false, user: null });
           return;
         }
+        // Há token válido persistido: restaura a sessão e sincroniza.
+        set({ isLoggedIn: true });
         get().loadFromServer();
       },
 
@@ -343,14 +345,15 @@ export const useAppStore = create<AppState>()(
 
       // ── Tweaks de tema ──────────────────────────────────────────
       accent: DEFAULT_ACCENT,
-      dark: false,
+      dark: true,
       density: 'regular',
       setAccent: (v) => set({ accent: v }),
       setDark: (v) => set({ dark: v }),
       setDensity: (v) => set({ density: v }),
     }),
     {
-      name: 'patchmap.store.v1',
+      // v2: nova paleta escura "console" como padrão (descarta tweaks antigos).
+      name: 'patchmap.store.v2',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

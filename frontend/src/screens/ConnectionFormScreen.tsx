@@ -302,14 +302,14 @@ export function ConnectionFormScreen({ route, navigation }: Props) {
                   fontFamily: mono(700),
                   textAlign: 'center',
                   borderWidth: touched && !valid ? 1.5 : 1,
-                  borderColor: touched && !valid ? '#dc2626' : t.border,
+                  borderColor: touched && !valid ? '#f43f5e' : t.border,
                 },
               ]}
             />
           </View>
         </View>
         {touched && !valid ? (
-          <Text style={{ fontSize: 12.5, fontFamily: sans(400), color: '#dc2626', marginTop: -12 }}>
+          <Text style={{ fontSize: 12.5, fontFamily: sans(400), color: '#f43f5e', marginTop: -12 }}>
             Informe o número da porta do patch panel.
           </Text>
         ) : null}

@@ -50,6 +50,11 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Assinatura Android (NUNCA versionar a keystore nem as senhas)
+*.keystore
+*.jks
+**/keystore.properties
+
 # Python (backend — próxima fase)
 __pycache__/
 *.py[cod]
@@ -65,3 +70,6 @@ db.sqlite3
 
 # Docker
 *.pid
+
+# Obsidian (substituído pelo PROJECT_CONTEXT.md)
+.obsidian/

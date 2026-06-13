@@ -1,7 +1,7 @@
 // MainTabs.tsx — contêiner de abas (Pontos / VLANs / Painel) com bottom nav + FAB.
 // Port da navegação de app.jsx (NavBtn, FAB e bottom nav só aparecem nas abas).
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -65,7 +65,8 @@ export function MainTabs({ navigation }: Props) {
   const [tab, setTab] = useState<Tab>('pontos');
   const [navHeight, setNavHeight] = useState(64);
 
-  const onOpen = (id: number) => navigation.navigate('Detail', { id });
+  // useCallback: prop estável p/ o PointRow memoizado não re-renderizar à toa.
+  const onOpen = useCallback((id: number) => navigation.navigate('Detail', { id }), [navigation]);
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -84,18 +85,20 @@ export function MainTabs({ navigation }: Props) {
           bottom: navHeight + 16,
           width: 60,
           height: 60,
-          borderRadius: 18,
+          borderRadius: 20,
           backgroundColor: t.accent,
           alignItems: 'center',
           justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: '#ffffff22',
           shadowColor: t.accent,
           shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.4,
+          shadowOpacity: 0.5,
           shadowRadius: 22,
           elevation: 10,
         }}
       >
-        <Icon name="plus" size={28} color={t.accentInk} stroke={2.4} />
+        <Icon name="plus" size={28} color={t.accentInk} stroke={2.6} />
       </Pressable>
 
       {/* Bottom nav */}
@@ -105,9 +108,9 @@ export function MainTabs({ navigation }: Props) {
           flexDirection: 'row',
           alignItems: 'center',
           paddingHorizontal: 8,
-          paddingTop: 4,
-          paddingBottom: 4 + insets.bottom,
-          backgroundColor: t.surface,
+          paddingTop: 6,
+          paddingBottom: 6 + insets.bottom,
+          backgroundColor: t.bgElev,
           borderTopWidth: 1,
           borderTopColor: t.border,
         }}
