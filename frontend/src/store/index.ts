@@ -34,6 +34,7 @@ interface AppState {
 
   // CRUD
   addPanel: (def: PanelDef) => void;
+  deletePanel: (id: string) => void;
   savePoint: (np: Point) => void;
   changePoint: (np: Point) => void;
   deletePoint: (id: number) => void;
@@ -175,6 +176,47 @@ export const useAppStore = create<AppState>()(
           }));
           return { panels: [...state.panels, def], points: [...state.points, ...newPoints] };
         }),
+
+      // ── Excluir painel ──────────────────────────────────────────
+      // Remove o painel e TODOS os seus pontos. No backend o FK é PROTECT,
+      // então os pontos são apagados antes do painel. Otimista + sync.
+      deletePanel: (id) => {
+        const { points, topology } = get();
+        const panelPoints = points.filter((p) => p.patchPanel === id);
+        // PK do painel no backend (os pontos carregam patchPanelId; senão deriva da topologia).
+        const backendId =
+          panelPoints.find((p) => p.patchPanelId)?.patchPanelId ??
+          topology?.panels.find((pp) => api.panelCode(pp.id) === id)?.id ??
+          id;
+
+        // Otimista: remove painel + pontos do estado local.
+        set((state) => ({
+          panels: state.panels.filter((pp) => pp.id !== id),
+          points: state.points.filter((p) => p.patchPanel !== id),
+        }));
+
+        if (!get().isLoggedIn) return;
+
+        // Sync em 2º plano: apaga os pontos (FK PROTECT) e depois o painel.
+        (async () => {
+          for (const p of panelPoints) {
+            if (!p.serverId) continue;
+            try {
+              await api.deletePointApi(p.serverId);
+            } catch {
+              set((state) => ({ pendingDeletes: [...state.pendingDeletes, p.serverId!] }));
+            }
+          }
+          try {
+            await api.deletePanelApi(backendId);
+          } catch (e) {
+            set({
+              lastSyncError:
+                e instanceof Error ? e.message : 'Falha ao excluir o painel no servidor.',
+            });
+          }
+        })();
+      },
 
       // ── CRUD pontos ─────────────────────────────────────────────
       // Estratégia: atualização otimista no store + sincronização em segundo

@@ -37,6 +37,10 @@ export const updatePoint = (id: string, body: Partial<ConnectionPointDTO>) =>
 export const deletePointApi = (id: string) =>
   request<null>(`/points/${id}/`, { method: 'DELETE' });
 
+// ── Patch panels ──────────────────────────────────────────────────────
+export const deletePanelApi = (id: string) =>
+  request<null>(`/panels/${id}/`, { method: 'DELETE' });
+
 // ── Setores (edição: nome/cor/vlan) ───────────────────────────────────
 export const updateSectorApi = (id: string, body: Partial<SectorDTO>) =>
   request<SectorDTO>(`/sectors/${id}/`, { method: 'PATCH', body });

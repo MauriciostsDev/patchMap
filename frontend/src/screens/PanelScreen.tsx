@@ -1,7 +1,7 @@
 // PanelScreen.tsx — Painel multi-rack visual (port de screen-extra.jsx PanelScreen).
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert } from 'react-native';
 import { useAppStore } from '../store';
 import { useTheme } from '../theme/useTheme';
 import { sans, mono } from '../theme/fonts';
@@ -81,6 +81,7 @@ export function PanelScreen({ onOpen }: { onOpen: (id: number) => void }) {
   const points = useAppStore((s) => s.points);
   const panels = useAppStore((s) => s.panels);
   const addPanel = useAppStore((s) => s.addPanel);
+  const deletePanel = useAppStore((s) => s.deletePanel);
   const colorOf = useAppStore((s) => s.sectorColorOf);
 
   const [colorBy, setColorBy] = useState<'setor' | 'status'>('setor');
@@ -134,19 +135,58 @@ export function PanelScreen({ onOpen }: { onOpen: (id: number) => void }) {
     setAddSheet(false);
   }
 
+  function confirmDeletePanel() {
+    Alert.alert(
+      'Excluir painel',
+      `Excluir o ${currentDef.label} e todos os seus ${panel.length} ${
+        panel.length === 1 ? 'ponto' : 'pontos'
+      }? Esta ação não pode ser desfeita.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Excluir', style: 'destructive', onPress: () => deletePanel(selectedId) },
+      ],
+    );
+  }
+
   const cellW = rackWidth > 0 ? (rackWidth - 6 * 7) / 8 : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Header */}
-        <View style={{ paddingTop: 16, paddingHorizontal: 16, paddingBottom: 6 }}>
-          <Text style={{ fontSize: 24, fontFamily: sans(700), color: t.text, letterSpacing: -0.4 }}>
-            {currentDef.label}
-          </Text>
-          <Text style={{ fontSize: 13, fontFamily: sans(400), color: t.muted, marginTop: 1 }}>
-            {used}/{panel.length} portas em uso · Switch {currentDef.sw}
-          </Text>
+        <View
+          style={{
+            paddingTop: 16,
+            paddingHorizontal: 16,
+            paddingBottom: 6,
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+          }}
+        >
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ fontSize: 24, fontFamily: sans(700), color: t.text, letterSpacing: -0.4 }}>
+              {currentDef.label}
+            </Text>
+            <Text style={{ fontSize: 13, fontFamily: sans(400), color: t.muted, marginTop: 1 }}>
+              {used}/{panel.length} portas em uso · Switch {currentDef.sw}
+            </Text>
+          </View>
+          <Pressable
+            onPress={confirmDeletePanel}
+            hitSlop={8}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: t.chip,
+              borderWidth: 1,
+              borderColor: t.border,
+            }}
+          >
+            <Icon name="trash" size={18} color="#f43f5e" stroke={2} />
+          </Pressable>
         </View>
 
         {/* Seletor de painéis */}

@@ -9,6 +9,7 @@ export {
   createPoint,
   updatePoint,
   deletePointApi,
+  deletePanelApi,
   updateSectorApi,
   createVlanApi,
   updateVlanApi,

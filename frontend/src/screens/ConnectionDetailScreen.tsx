@@ -1,7 +1,7 @@
 // ConnectionDetailScreen.tsx — Detalhe do ponto (port de screen-detail.jsx).
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -277,8 +277,22 @@ export function ConnectionDetailScreen({ route, navigation }: Props) {
 
         <Pressable
           onPress={() => {
-            deletePoint(p.id);
-            navigation.goBack();
+            const nome = p.point || `#${String(p.id).padStart(2, '0')}`;
+            Alert.alert(
+              'Excluir ponto',
+              `Tem certeza que deseja excluir o ponto ${nome}? Esta ação não pode ser desfeita.`,
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Excluir',
+                  style: 'destructive',
+                  onPress: () => {
+                    deletePoint(p.id);
+                    navigation.goBack();
+                  },
+                },
+              ],
+            );
           }}
           style={{
             paddingVertical: 10,

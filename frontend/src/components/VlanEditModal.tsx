@@ -1,7 +1,7 @@
 // VlanEditModal.tsx — cria/edita uma VLAN (grupo) e escolhe seus setores.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, ScrollView, Alert } from 'react-native';
 import { useAppStore } from '../store';
 import { useTheme } from '../theme/useTheme';
 import { sans, mono } from '../theme/fonts';
@@ -55,8 +55,22 @@ export function VlanEditModal({
   }
 
   function remove() {
-    if (vlan) deleteVlan(vlan.id);
-    onClose();
+    if (!vlan) return;
+    Alert.alert(
+      'Excluir VLAN',
+      `Tem certeza que deseja excluir a VLAN ${vlan.vlanId} — ${vlan.name}? Os setores voltam a ficar sem VLAN. Esta ação não pode ser desfeita.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            deleteVlan(vlan.id);
+            onClose();
+          },
+        },
+      ],
+    );
   }
 
   const label = (s: string) => (
